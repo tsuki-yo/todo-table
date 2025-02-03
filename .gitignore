@@ -1,0 +1,61 @@
+# Node.js (Express.js Backend & React Frontend)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+*.out
+*.err
+npm-debug.log*
+
+# Docker
+docker-compose.override.yml
+*.swp
+*.swo
+*.swn
+
+# PostgreSQL
+*.sql
+pgdata/
+*.db
+dump.sql
+
+# Kubernetes & Terraform
+*.tfstate
+*.tfstate.*
+.kube/
+terraform.tfvars
+.kubernetes/
+*.tfplan
+crash.log
+
+# Build & Dependencies
+dist/
+build/
+coverage/
+.DS_Store
+.idea/
+.vscode/
+.tmp/
+.cache/
+
+# CI/CD & Jenkins
+.jenkins/
+.jenkins/workspace/
+.jenkins/jobs/
+
+# Misc
+.nyc_output/
+*.pid
+*.seed
+*.seed.ts
