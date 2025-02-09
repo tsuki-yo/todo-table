@@ -35,6 +35,7 @@ dump.sql
 *.tfstate.*
 .kube/
 terraform.tfvars
+.terraform/
 .kubernetes/
 *.tfplan
 crash.log
