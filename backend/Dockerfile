@@ -1,23 +1,10 @@
-# Use official Node.js image as base
+# Stage 1: Build the backend image
 FROM node:18-alpine
-
-# Set working directory in container
 WORKDIR /app
-
-# Copy package.json and package-lock.json
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy all project files
 COPY . .
 
-# Set environment variables
-ENV PORT=3000
-
-# Expose the application port
-EXPOSE 3000
-
-# Start the server
+EXPOSE 3002
 CMD ["node", "server.js"]
+
