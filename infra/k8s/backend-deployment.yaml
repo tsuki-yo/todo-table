@@ -35,8 +35,3 @@ spec:
             secretKeyRef:
               name: aws-credentials
               key: AWS_REGION
-        - name: AWS_SDK_LOAD_CONFIG
-          valueFrom:
-            secretKeyRef:
-              name: aws-credentials
-              key: AWS_SDK_LOAD_CONFIG
