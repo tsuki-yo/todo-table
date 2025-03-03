@@ -4,7 +4,6 @@ metadata:
   name: todo-backend
   namespace: todo-app
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: todo-backend
@@ -19,6 +18,13 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3002
+        resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 100m
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
