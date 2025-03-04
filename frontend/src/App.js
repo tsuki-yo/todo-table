@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3002/tasks";
+const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20; // Fixed number of rows
 
 function App() {
@@ -76,3 +76,4 @@ function App() {
 }
 
 export default App;
+

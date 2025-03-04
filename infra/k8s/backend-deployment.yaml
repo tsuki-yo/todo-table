@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: todo-backend
-        image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
+        image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3002
