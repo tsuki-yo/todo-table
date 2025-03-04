@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: todo-frontend
-        image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
-        imagePullPolicy: IfNotPresent
+        image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         resources:
@@ -25,3 +25,9 @@ spec:
             limits:
               memory: 256Mi
               cpu: 100m
+        env:
+        - name : REACT_APP_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: REACT_APP_API_URL
