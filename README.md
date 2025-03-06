@@ -1,11 +1,12 @@
 # Whiteboard To-Do App
 
 ## Overview
-A real-time task management app built with Express.js, Redis, Kubernetes, Terraform, and AWS EKS.
+A Highly scalable cloud native to-do management app built with Kubernetes(EKS), Terraform, Jenkins, Algo CD, Prometheus. 
 
 ## Tech Stack
 - Backend: Express.js (Node.js)
-- Database: PostgreSQL (AWS RDS)
-- Real-time: WebSockets + Redis Pub/Sub
+- Database: DynamoDB
 - Frontend: React.js
-- Infra: Kubernetes (EKS), Terraform, Jenkins CI/CD
+- Infra: Kubernetes (EKS), Terraform, Jenkins, Algo CD, Prometheus
+
+Site URL: https://todo-app.natsuki-cloud.dev

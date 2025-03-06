@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
+const API_URL = `${process.env.REACT_APP_API_URL}/tasks`;
+
 const TOTAL_ROWS = 20; // Fixed number of rows
 
 function App() {
