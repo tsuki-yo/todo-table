@@ -4,5 +4,5 @@ locals {
   zone1 = "ap-northeast-1a"
   zone2 = "ap-northeast-1c"
   eks_name = "todo-eks"
-  eks_version = "1.29"
+  eks_version = "1.32"
 }

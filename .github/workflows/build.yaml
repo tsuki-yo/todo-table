@@ -1,7 +1,7 @@
-name: Build and Push Express Image to ECR
+name: Build and Push Frontend and Backend Image to ECR
 on:
   push:
-    branches: [feature/github-actions]
+    branches: [dev]
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
