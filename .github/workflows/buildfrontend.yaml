@@ -19,7 +19,12 @@ jobs:
       - name: Login to ECR 
         run: aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
         
+      - name: Automatic Tagging of Releases
+        id: increment-git-tag
+        run:
+          bash ./.github/script/git_update.sh -v patch
+
       - name: Build, Tag, and Push the Image to Amazon ECR
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:latest -f frontend/Dockerfile frontend/
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:latest
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${{ steps.increment-git-tag.outputs.new_tag }} -f frontend/Dockerfile frontend/
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${{ steps.increment-git-tag.outputs.new_tag }}
