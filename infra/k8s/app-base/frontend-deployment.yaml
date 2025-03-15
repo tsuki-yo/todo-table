@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-frontend
-  namespace: todo-app
 spec:
   selector:
     matchLabels:
