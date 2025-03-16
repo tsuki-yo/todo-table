@@ -1,0 +1,2 @@
+githubConfigSecret: github-app-secret
+syncPeriod: 1m
