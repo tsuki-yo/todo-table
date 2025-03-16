@@ -10,4 +10,6 @@ spec:
       repository: tsuki-yo/todo-table
       labels:
         - my-custom-runner
-      env: []
+      envFrom:
+        - secretRef:
+            name: sealed-github-app-secret

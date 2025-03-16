@@ -6,10 +6,6 @@ resource "helm_release" "actions" {
   create_namespace = true
   version    = "0.23.7"
   depends_on = [helm_release.cert_manager]
-
-  set {
-    name  = "syncPeriod"
-    value = "1m"
-  }
-
+  
+  values = [file("${path.module}/values/action-runner.yaml")]
 }

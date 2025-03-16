@@ -60,3 +60,7 @@ coverage/
 *.pid
 *.seed
 *.seed.ts
+
+# Secrets
+*secret*.yaml
+!*sealed*.yaml

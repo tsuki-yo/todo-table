@@ -11,6 +11,9 @@ resource "kubernetes_secret" "sealed_secrets_tls" {
   metadata {
     name      = "sealed-secrets-tls"
     namespace = "kube-system"
+    labels = {
+      "sealedsecrets.bitnami.com/sealed-secrets-tls" = "active"
+    }
   }
   data = {
     "tls.key" = base64encode(local.key_data["tls.key"])
