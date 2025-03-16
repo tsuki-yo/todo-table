@@ -1,0 +1,33 @@
+
+data "aws_secretsmanager_secret_version" "secretmanager_encryption_key" {
+  secret_id = "arn:aws:secretsmanager:ap-northeast-1:881490098269:secret:secretmanager_encryption_key-EqyIxH"
+}
+
+locals {
+  key_data = jsondecode(data.aws_secretsmanager_secret_version.secretmanager_encryption_key.secret_string)
+}
+
+resource "kubernetes_secret" "sealed_secrets_tls" {
+  metadata {
+    name      = "sealed-secrets-tls"
+    namespace = "kube-system"
+  }
+  data = {
+    "tls.key" = base64encode(local.key_data["tls.key"])
+    "tls.crt" = base64encode(local.key_data["tls.crt"])
+  }
+  type = "kubernetes.io/tls"
+}
+
+
+resource "helm_release" "sealed_secrets" {
+  name = "sealed-secrets"
+
+  repository       = "https://charts.bitnami.com/bitnami"
+  chart            = "sealed-secrets"
+  namespace        = "kube-system"
+  create_namespace = true
+  version          = "1.2.11"
+  values = [file("${path.module}/values/sealed-secrets-tls.yaml")]
+
+}
