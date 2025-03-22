@@ -9,5 +9,5 @@ resource "helm_release" "external_nginx" {
 
   values = [file("${path.module}/values/nginx-ingress.yaml")]
 
-  depends_on = [helm_release.aws_lbc]
+  depends_on = [aws_eks_node_group.general, aws_eks_cluster.eks, helm_release.aws_lbc]
 }

@@ -4,7 +4,7 @@ kind: Kustomization
 metadata:
   name: arbitrary
 resources:
-  - namespace.yaml
+  - namespace-todo-app.yaml
   - frontend-deployment.yaml
   - backend-deployment.yaml
   - frontend-service.yaml
