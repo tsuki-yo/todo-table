@@ -12,4 +12,4 @@ spec:
         - my-custom-runner
       envFrom:
         - secretRef:
-            name: sealed-github-app-secret
+            name: github-app-secret

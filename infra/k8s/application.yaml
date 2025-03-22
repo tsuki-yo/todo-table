@@ -8,13 +8,14 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: |
     881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend: "~0.1.1"
     881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend: "~0.1.1"
+    argocd-image-updater.argoproj.io/git-push-repo: "ssh://git@github.com/tsuki-yo/todo-table.git"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: ssh://git@github.com/tsuki-yo/todo-table.git
-    targetRevision: feature/algocd
+    repoURL: https://github.com/tsuki-yo/todo-table.git
+    targetRevision: feature/argocd
     path: infra/k8s/environments/staging/app
   destination:
     server: https://kubernetes.default.svc
