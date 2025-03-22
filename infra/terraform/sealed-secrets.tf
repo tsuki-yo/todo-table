@@ -4,7 +4,10 @@ data "aws_secretsmanager_secret_version" "secretmanager_encryption_key" {
 }
 
 locals {
-  key_data = jsondecode(data.aws_secretsmanager_secret_version.secretmanager_encryption_key.secret_string)
+  key_data = {
+    "tls.key" = base64decode(jsondecode(data.aws_secretsmanager_secret_version.secretmanager_encryption_key.secret_string)["tls.key"])
+    "tls.crt" = base64decode(jsondecode(data.aws_secretsmanager_secret_version.secretmanager_encryption_key.secret_string)["tls.crt"])
+  }
 }
 
 resource "kubernetes_secret" "sealed_secrets_tls" {
@@ -12,12 +15,15 @@ resource "kubernetes_secret" "sealed_secrets_tls" {
     name      = "sealed-secrets-tls"
     namespace = "kube-system"
     labels = {
-      "sealedsecrets.bitnami.com/sealed-secrets-tls" = "active"
+      "sealedsecrets.bitnami.com/sealed-secrets-key" = "active"
+    }
+    annotations = {
+      "sealedsecrets.bitnami.com/cluster-wide" = "true"
     }
   }
   data = {
-    "tls.key" = base64encode(local.key_data["tls.key"])
-    "tls.crt" = base64encode(local.key_data["tls.crt"])
+    "tls.key" = local.key_data["tls.key"]
+    "tls.crt" = local.key_data["tls.crt"]
   }
   type = "kubernetes.io/tls"
 }
@@ -32,5 +38,5 @@ resource "helm_release" "sealed_secrets" {
   create_namespace = true
   version          = "1.2.11"
   values = [file("${path.module}/values/sealed-secrets-tls.yaml")]
-
+  depends_on = [kubernetes_secret.sealed_secrets_tls]
 }

@@ -1,5 +1,4 @@
 ---
-namespace: staging
 replicas:
   - name: todo-frontend
     count: 1
