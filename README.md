@@ -1,7 +1,7 @@
 # Whiteboard To-Do App Portfolio Project 🚀
 
 ## Overview 🎯  
-A cloud-native, real-time task management app built to showcase modern full-stack and cloud infrastructure skills. Now enhanced with secure user authentication via AWS Cognito, container orchestration on Kubernetes (EKS), and automated infrastructure provisioning using Terraform and GitOps.
+A cloud-native, full-stack task management application developed to showcase advanced proficiency in modern web development, cloud infrastructure, and DevOps practices. The project features secure authentication with AWS Cognito, scalable deployment on Kubernetes (EKS), and automated infrastructure provisioning using Terraform and GitOps methodologies.
 
 ## Tech Stack 🛠️  
 - **Frontend:** React ⚛️  
