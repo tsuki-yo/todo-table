@@ -15,7 +15,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/tsuki-yo/todo-table.git
-    targetRevision: feature/argocd
+    targetRevision: dev
     path: infra/k8s/environments/staging/app
   destination:
     server: https://kubernetes.default.svc

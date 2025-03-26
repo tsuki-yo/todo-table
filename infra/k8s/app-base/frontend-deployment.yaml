@@ -25,9 +25,3 @@ spec:
             limits:
               memory: 256Mi
               cpu: 100m
-        env:
-        - name : REACT_APP_API_URL
-          valueFrom:
-            secretKeyRef:
-              name: aws-credentials
-              key: REACT_APP_API_URL
