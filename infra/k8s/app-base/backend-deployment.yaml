@@ -12,6 +12,7 @@ spec:
       labels:
         app: todo-backend
     spec:
+      serviceAccountName: backend-sa
       containers:
       - name: todo-backend
         image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:latest
@@ -25,19 +26,3 @@ spec:
             limits:
               memory: 256Mi
               cpu: 100m
-        env:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: aws-credentials
-              key: AWS_ACCESS_KEY_ID
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: aws-credentials
-              key: AWS_SECRET_ACCESS_KEY
-        - name: AWS_REGION
-          valueFrom:
-            secretKeyRef:
-              name: aws-credentials
-              key: AWS_REGION
