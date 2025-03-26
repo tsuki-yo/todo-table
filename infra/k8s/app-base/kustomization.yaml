@@ -6,6 +6,7 @@ metadata:
 resources:
   - namespace-todo-app.yaml
   - frontend-deployment.yaml
+  - backend-sa.yaml
   - backend-deployment.yaml
   - frontend-service.yaml
   - backend-service.yaml
