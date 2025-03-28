@@ -6,6 +6,8 @@ metadata:
   namespace: todo-app
   annotations:
     cert-manager.io/cluster-issuer: http-01-production
+    nginx.ingress.kubernetes.io/hsts: "false"
+    nginx.ingress.kubernetes.io/hsts-max-age: "0"
 spec:
   ingressClassName: external-nginx
   rules:
