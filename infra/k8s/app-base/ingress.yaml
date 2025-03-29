@@ -28,6 +28,14 @@ spec:
                 name: backend-service
                 port:
                   number: 3002
+          - path: /callback
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
+                  
   tls:
     - hosts:
         - todo-app.natsuki-cloud.dev
