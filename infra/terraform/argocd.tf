@@ -1,6 +1,6 @@
 # helm repo add argo https://argoproj.github.io/argo-helm
 # helm repo update
-# helm install argocd -n argocd --create-namespace argo/argo-cd --version 3.35.4 -f terraform/values/argocd.yaml
+# helm install argocd -n argocd --create-namespace argo/argo-cd --version 7.8.26 -f terraform/values/argocd.yaml
 resource "helm_release" "argocd" {
   name = "argocd"
 
@@ -8,7 +8,7 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   namespace        = "argocd"
   create_namespace = true
-  version          = "3.35.4"
+  version          = "7.8.26"
 
   values = [file("${path.module}/values/argocd.yaml")]
 }
