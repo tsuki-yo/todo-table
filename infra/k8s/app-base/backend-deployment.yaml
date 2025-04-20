@@ -4,6 +4,7 @@ metadata:
   name: todo-backend
   namespace: todo-app
 spec:
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: todo-backend
