@@ -106,47 +106,53 @@ function App() {
 
   return (
     <div style={{ 
-      padding: "20px",
+      padding: "clamp(10px, 3vw, 20px)",
       minHeight: '100vh',
       backgroundColor: '#f5f5f5',
       fontFamily: "Arial, sans-serif" 
     }}>
       <div style={{
         background: 'white',
-        padding: '2rem',
+        padding: 'clamp(1rem, 4vw, 2rem)',
         borderRadius: '10px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         marginBottom: '20px'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2 style={{ margin: 0, color: '#333' }}>Welcome, {auth.user?.profile.email}</h2>
-          <div>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '20px',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <h2 style={{ 
+            margin: 0, 
+            color: '#333',
+            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)',
+            flex: '1 1 auto',
+            wordBreak: 'break-word'
+          }}>Welcome, {auth.user?.profile.email}</h2>
+          <div style={{ flex: '0 0 auto' }}>
             <button
-              onClick={() => auth.removeUser()}
+              onClick={signOutRedirect}
               style={{
                 backgroundColor: '#dc3545',
                 color: 'white',
                 border: 'none',
-                padding: '8px 16px',
+                padding: 'clamp(6px, 2vw, 8px) clamp(12px, 3vw, 16px)',
                 borderRadius: '5px',
-                marginRight: '10px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+                fontSize: 'clamp(0.875rem, 3vw, 1rem)',
+                whiteSpace: 'nowrap',
+                touchAction: 'manipulation'
               }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
             >
               Sign out
-            </button>
-            <button
-              onClick={signOutRedirect}
-              style={{
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
-            >
-              Sign out (redirect)
             </button>
           </div>
         </div>
@@ -154,24 +160,57 @@ function App() {
 
       <div style={{
         background: 'white',
-        padding: '2rem',
+        padding: 'clamp(1rem, 4vw, 2rem)',
         borderRadius: '10px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        overflowX: 'auto'
       }}>
-        <h2 style={{ color: '#333', marginBottom: '20px' }}>Todo List</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <h2 style={{ 
+          color: '#333', 
+          marginBottom: '20px',
+          fontSize: 'clamp(1.2rem, 4vw, 1.5rem)'
+        }}>Todo List</h2>
+        <table style={{ 
+          width: "100%", 
+          borderCollapse: "collapse",
+          minWidth: '300px'
+        }}>
           <thead>
             <tr style={{ background: "#f8f9fa" }}>
-              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>#</th>
-              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>Item Name</th>
-              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>Due Date</th>
+              <th style={{ 
+                border: "1px solid #dee2e6", 
+                padding: "clamp(8px, 2vw, 12px)", 
+                color: '#495057',
+                fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+              }}>#</th>
+              <th style={{ 
+                border: "1px solid #dee2e6", 
+                padding: "clamp(8px, 2vw, 12px)", 
+                color: '#495057',
+                fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+              }}>Item Name</th>
+              <th style={{ 
+                border: "1px solid #dee2e6", 
+                padding: "clamp(8px, 2vw, 12px)", 
+                color: '#495057',
+                fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+              }}>Due Date</th>
             </tr>
           </thead>
           <tbody>
             {tasks.map((task, index) => (
               <tr key={index}>
-                <td style={{ border: "1px solid #dee2e6", padding: "12px", textAlign: "center" }}>{index + 1}</td>
-                <td style={{ border: "1px solid #dee2e6", padding: "12px" }}>
+                <td style={{ 
+                  border: "1px solid #dee2e6", 
+                  padding: "clamp(8px, 2vw, 12px)", 
+                  textAlign: "center",
+                  fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+                }}>{index + 1}</td>
+                <td style={{ 
+                  border: "1px solid #dee2e6", 
+                  padding: "clamp(8px, 2vw, 12px)",
+                  fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+                }}>
                   <input
                     type="text"
                     value={task?.task || ""}
@@ -182,12 +221,18 @@ function App() {
                       border: "none",
                       background: "transparent",
                       padding: "4px",
-                      borderRadius: "3px"
+                      borderRadius: "3px",
+                      fontSize: 'clamp(0.875rem, 3vw, 1rem)',
+                      touchAction: 'manipulation'
                     }}
                     placeholder="Enter task..."
                   />
                 </td>
-                <td style={{ border: "1px solid #dee2e6", padding: "12px" }}>
+                <td style={{ 
+                  border: "1px solid #dee2e6", 
+                  padding: "clamp(8px, 2vw, 12px)",
+                  fontSize: 'clamp(0.875rem, 3vw, 1rem)'
+                }}>
                   <input
                     type="date"
                     value={task?.dueDate || ""}
@@ -198,7 +243,9 @@ function App() {
                       border: "none",
                       background: "transparent",
                       padding: "4px",
-                      borderRadius: "3px"
+                      borderRadius: "3px",
+                      fontSize: 'clamp(0.875rem, 3vw, 1rem)',
+                      touchAction: 'manipulation'
                     }}
                   />
                 </td>
