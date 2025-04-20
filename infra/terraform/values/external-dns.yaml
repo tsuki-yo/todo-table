@@ -1,0 +1,19 @@
+---
+provider: aws
+domainFilter: natsuki-cloud.dev
+policy: upsert-only
+registry: txt
+txtOwnerId: k8s
+sources:
+  - service
+  - ingress
+aws:
+  zoneType: public
+  batchChangeInterval: 1m
+logLevel: debug
+podSecurityContext:
+  fsGroup: 65534
+securityContext:
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65534 
