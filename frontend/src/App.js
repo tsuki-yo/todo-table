@@ -24,6 +24,7 @@ function App() {
   // Fetch tasks when authenticated
   useEffect(() => {
     if (auth.isAuthenticated) {
+      console.log('Auth user profile:', auth.user?.profile);
       axios
         .get(API_URL, {
           headers: { Authorization: `Bearer ${auth.user?.access_token}` },
