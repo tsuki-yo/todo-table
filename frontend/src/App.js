@@ -116,16 +116,25 @@ function App() {
 }
 
 function Callback() {
-  // Log right at the start, before anything else
-  console.log('--- MINIMAL Callback Component Render ---');
-  console.log('--- If you see this, logging works. ---');
+  const auth = useAuth();
+  const navigate = useNavigate();
 
-  // No hooks, no effects, no auth context for this test
-  // Just return a simple div
+  useEffect(() => {
+    // Process the authorization code
+    auth.signinCallback().then(() => {
+      // Redirect to the main application
+      navigate("/");
+    }).catch(error => {
+      console.error("Error during signin callback:", error);
+      // Redirect to the main application even if there's an error
+      navigate("/");
+    });
+  }, [auth, navigate]);
 
   return (
-    <div>
-      Minimal Callback Rendered. Check console NOW.
+    <div style={{ padding: "20px", textAlign: "center" }}>
+      <h2>Processing login...</h2>
+      <p>Please wait while we complete your authentication.</p>
     </div>
   );
 }
