@@ -1,28 +1,8 @@
 ---
 global:
   image:
-    tag: "v2.2.5"
+    tag: "v2.14.10"
 
 server:
   extraArgs:
     - --insecure
-
-configs:
-  cm:
-    resource.customizations: |
-      autoscaling/HorizontalPodAutoscaler:
-        health.lua: |
-          hs = {}
-          hs.status = "Healthy"
-          hs.message = "No status check for HPA"
-          return hs
-    resource.customizations.ignoreDifferences: |
-      - group: autoscaling
-        kind: HorizontalPodAutoscaler
-        jsonPointers:
-          - /status
-      - group: autoscaling
-        version: v2
-        kind: HorizontalPodAutoscaler
-        jsonPointers:
-          - /status
