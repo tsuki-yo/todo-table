@@ -120,23 +120,32 @@ function Callback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Process the authorization code
-    auth.signinCallback().then(() => {
-      // Redirect to the main application
-      navigate("/");
-    }).catch(error => {
-      console.error("Error during signin callback:", error);
-      // Redirect to the main application even if there's an error
-      navigate("/");
+    console.log("Auth state:", {
+      isLoading: auth.isLoading,
+      isAuthenticated: auth.isAuthenticated,
+      error: auth.error
     });
-  }, [auth, navigate]);
 
-  return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <h2>Processing login...</h2>
-      <p>Please wait while we complete your authentication.</p>
-    </div>
-  );
+    if (!auth.isLoading) {
+      if (auth.isAuthenticated) {
+        navigate("/");
+      } else if (auth.error) {
+        console.error("Auth error:", auth.error);
+        navigate("/");
+      }
+    }
+  }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
+
+  if (auth.isLoading) {
+    return (
+      <div style={{ padding: "20px", textAlign: "center" }}>
+        <h2>Processing login...</h2>
+        <p>Please wait while we complete your authentication.</p>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // Root component that sets up routing
