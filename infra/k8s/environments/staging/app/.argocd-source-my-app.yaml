@@ -1,4 +1,4 @@
 kustomize:
   images:
-  - 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend:0.1.14
-  - 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:0.1.14
+  - 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend:0.1.15
+  - 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:0.1.15
