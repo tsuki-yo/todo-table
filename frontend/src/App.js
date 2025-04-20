@@ -16,7 +16,7 @@ function App() {
   const signOutRedirect = () => {
     const clientId = auth.settings.client_id;
     const logoutUri = "https://todo-app.natsuki-cloud.dev";
-    const cognitoDomain = "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com";
+    const cognitoDomain = "https://ap-northeast-1.rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com";
     window.location.href = `${cognitoDomain}/oauth2/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
