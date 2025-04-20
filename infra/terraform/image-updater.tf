@@ -8,7 +8,23 @@ resource "helm_release" "updater" {
   chart            = "argocd-image-updater"
   namespace        = "argocd"
   create_namespace = true
-  version          = "0.8.4"
+  version          = "0.12.1"
+  
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.image_updater_irsa_role.arn
+    type  = "string"
+  }
 
+  set {
+    name  = "config.logLevel" # The path within Helm values
+    value = "debug"           # The desired value
+    type  = "string"          # Value type
+  }
+  
   values = [file("${path.module}/values/image-updater.yaml")]
+
+  depends_on = [
+    aws_iam_role.image_updater_irsa_role
+  ]
 }
