@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "react-oidc-context";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 
 const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20; // Fixed number of rows
@@ -115,31 +115,30 @@ function App() {
   );
 }
 
-// Callback component to process the OAuth response
-const Callback = () => {
-  const auth = useAuth();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    auth
-      .signinRedirectCallback()
-      .then(() => navigate("/", { replace: true }))
-      .catch((err) => console.error("Callback error:", err));
-  }, [auth, navigate]);
-  
-  return <div>Processing login...</div>;
-};
+function Callback() {
+  // Log right at the start, before anything else
+  console.log('--- MINIMAL Callback Component Render ---');
+  console.log('--- If you see this, logging works. ---');
+
+  // No hooks, no effects, no auth context for this test
+  // Just return a simple div
+
+  return (
+    <div>
+      Minimal Callback Rendered. Check console NOW.
+    </div>
+  );
+}
 
 // Root component that sets up routing
-const Root = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/callback" element={<Callback />} />
-        <Route path="/*" element={<App />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
+const Root = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/callback" element={<Callback />} />
+      <Route path="/" element={<App />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  </BrowserRouter>
+);
 
 export default Root;
