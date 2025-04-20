@@ -6,8 +6,7 @@ metadata:
 spec:
   acme:
     email: mozc67@gmail.com
-    #server: https://acme-v02.api.letsencrypt.org/directory
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: http-01-production-cluster-issuer
     solvers:
