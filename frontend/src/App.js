@@ -14,10 +14,7 @@ function App() {
   );
 
   const signOutRedirect = () => {
-    const clientId = auth.settings.client_id;
-    const logoutUri = "https://todo-app.natsuki-cloud.dev";
-    const endSessionEndpoint = auth.settings.metadata.end_session_endpoint;
-    window.location.href = `${endSessionEndpoint}?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    auth.signoutRedirect();
   };
 
   // Fetch tasks when authenticated
