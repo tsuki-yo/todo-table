@@ -17,7 +17,7 @@ function App() {
     const clientId = auth.settings.client_id;
     const logoutUri = "https://todo-app.natsuki-cloud.dev";
     const cognitoDomain = "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com";
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    window.location.href = `${cognitoDomain}/oauth2/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
   // Fetch tasks when authenticated
@@ -60,57 +60,153 @@ function App() {
 
   if (!auth.isAuthenticated) {
     return (
-      <div>
-        <button onClick={() => auth.signinRedirect()}>Sign in</button>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '2rem',
+          borderRadius: '10px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          textAlign: 'center',
+          maxWidth: '400px',
+          width: '90%'
+        }}>
+          <h1 style={{ color: '#333', marginBottom: '1rem' }}>Welcome to Todo Table</h1>
+          <p style={{ color: '#666', marginBottom: '2rem' }}>
+            A simple and elegant way to manage your tasks. Sign in to get started!
+          </p>
+          <button 
+            onClick={() => auth.signinRedirect()}
+            style={{
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '5px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+          >
+            Sign in with Cognito
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "20px", textAlign: "center", fontFamily: "Arial, sans-serif" }}>
-      <div>
-        <pre>Hello: {auth.user?.profile.email}</pre>
-        <pre>ID Token: {auth.user?.id_token}</pre>
-        <pre>Access Token: {auth.user?.access_token}</pre>
-        <pre>Refresh Token: {auth.user?.refresh_token}</pre>
-        <button onClick={() => auth.removeUser()}>Sign out</button>
-        <button onClick={signOutRedirect}>Sign out (redirect)</button>
+    <div style={{ 
+      padding: "20px",
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      fontFamily: "Arial, sans-serif" 
+    }}>
+      <div style={{
+        background: 'white',
+        padding: '2rem',
+        borderRadius: '10px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        marginBottom: '20px'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0, color: '#333' }}>Welcome, {auth.user?.profile.email}</h2>
+          <div>
+            <button
+              onClick={() => auth.removeUser()}
+              style={{
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '5px',
+                marginRight: '10px',
+                cursor: 'pointer'
+              }}
+            >
+              Sign out
+            </button>
+            <button
+              onClick={signOutRedirect}
+              style={{
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              Sign out (redirect)
+            </button>
+          </div>
+        </div>
       </div>
-      <h2>Todo List</h2>
-      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
-        <thead>
-          <tr style={{ background: "#f4f4f4" }}>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>#</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Item Name</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Due Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map((task, index) => (
-            <tr key={index}>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>{index + 1}</td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                <input
-                  type="text"
-                  value={task?.task || ""}
-                  onChange={(e) => handleEdit(index, "task", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  style={{ width: "100%", border: "none", background: "transparent" }}
-                />
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                <input
-                  type="date"
-                  value={task?.dueDate || ""}
-                  onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  style={{ width: "100%", border: "none", background: "transparent" }}
-                />
-              </td>
+
+      <div style={{
+        background: 'white',
+        padding: '2rem',
+        borderRadius: '10px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h2 style={{ color: '#333', marginBottom: '20px' }}>Todo List</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#f8f9fa" }}>
+              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>#</th>
+              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>Item Name</th>
+              <th style={{ border: "1px solid #dee2e6", padding: "12px", color: '#495057' }}>Due Date</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tasks.map((task, index) => (
+              <tr key={index}>
+                <td style={{ border: "1px solid #dee2e6", padding: "12px", textAlign: "center" }}>{index + 1}</td>
+                <td style={{ border: "1px solid #dee2e6", padding: "12px" }}>
+                  <input
+                    type="text"
+                    value={task?.task || ""}
+                    onChange={(e) => handleEdit(index, "task", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    style={{ 
+                      width: "100%",
+                      border: "none",
+                      background: "transparent",
+                      padding: "4px",
+                      borderRadius: "3px"
+                    }}
+                    placeholder="Enter task..."
+                  />
+                </td>
+                <td style={{ border: "1px solid #dee2e6", padding: "12px" }}>
+                  <input
+                    type="date"
+                    value={task?.dueDate || ""}
+                    onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    style={{ 
+                      width: "100%",
+                      border: "none",
+                      background: "transparent",
+                      padding: "4px",
+                      borderRadius: "3px"
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
