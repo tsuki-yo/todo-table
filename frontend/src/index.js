@@ -20,7 +20,7 @@ const cognitoAuthConfig = {
     authorization_endpoint: "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com/oauth2/authorize",
     token_endpoint: "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com/oauth2/token",
     userinfo_endpoint: "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com/oauth2/userInfo",
-    end_session_endpoint: "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com/logout",
+    end_session_endpoint: "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com/oauth2/logout",
     jwks_uri: "https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_rHCqR8mhF/.well-known/jwks.json"
   }
 };
