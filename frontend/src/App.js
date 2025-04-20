@@ -14,7 +14,7 @@ function App() {
   );
 
   const signOutRedirect = () => {
-    auth.removeUser();
+    auth.signoutRedirect();
   };
 
   // Fetch tasks when authenticated
