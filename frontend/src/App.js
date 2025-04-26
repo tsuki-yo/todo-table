@@ -21,6 +21,15 @@ function App() {
     window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
+  // Add this new function to check if date is past due
+  const isPastDue = (dateString) => {
+    if (!dateString) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);  // Reset time part for accurate date comparison
+    const dueDate = new Date(dateString);
+    return dueDate < today;
+  };
+
   // Fetch tasks when authenticated
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -247,7 +256,8 @@ function App() {
                       padding: "4px",
                       borderRadius: "3px",
                       fontSize: 'clamp(0.875rem, 3vw, 1rem)',
-                      touchAction: 'manipulation'
+                      touchAction: 'manipulation',
+                      color: isPastDue(task?.dueDate) ? '#dc3545' : 'inherit'  // Red color if past due
                     }}
                   />
                 </td>
