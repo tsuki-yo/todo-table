@@ -17,7 +17,7 @@ const TABLE_NAME = "TodoTasks";
 // Configure Cognito JWT verifier
 const verifier = CognitoJwtVerifier.create({
   userPoolId: "ap-northeast-1_rHCqR8mhF",
-  tokenUse: "id",
+  tokenUse: "access",
   clientId: "3tdd1ec5am5tci65s7tdkofpv4",
 });
 
