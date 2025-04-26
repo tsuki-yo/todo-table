@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "react-oidc-context";
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { isPastDue } from "./utils/dateUtils";
 
 const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20; // Fixed number of rows
@@ -19,15 +20,6 @@ function App() {
     const cognitoDomain = "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com";
     auth.removeUser(); // Clear the auth state first
     window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-  };
-
-  // Add this new function to check if date is past due
-  const isPastDue = (dateString) => {
-    if (!dateString) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);  // Reset time part for accurate date comparison
-    const dueDate = new Date(dateString);
-    return dueDate < today;
   };
 
   // Fetch tasks when authenticated
