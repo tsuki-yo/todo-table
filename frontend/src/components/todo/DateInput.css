@@ -1,0 +1,13 @@
+.date-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-small);
+  touch-action: manipulation;
+}
+
+.date-input.past-due {
+  color: var(--color-danger);
+} 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import DateInput from './DateInput';
 
 describe('DateInput', () => {
@@ -21,14 +21,14 @@ describe('DateInput', () => {
   it('calls onChange when value changes', () => {
     const handleChange = jest.fn();
     render(<DateInput onChange={handleChange} />);
-    screen.getByTestId('date-input').dispatchEvent(new Event('change'));
+    fireEvent.change(screen.getByTestId('date-input'), { target: { value: '2024-03-22' } });
     expect(handleChange).toHaveBeenCalled();
   });
 
   it('calls onBlur when input loses focus', () => {
     const handleBlur = jest.fn();
     render(<DateInput onBlur={handleBlur} />);
-    screen.getByTestId('date-input').dispatchEvent(new Event('blur'));
+    fireEvent.blur(screen.getByTestId('date-input'));
     expect(handleBlur).toHaveBeenCalled();
   });
 }); 
