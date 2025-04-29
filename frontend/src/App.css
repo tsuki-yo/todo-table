@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+
+.past-due {
+  color: var(--color-danger) !important;
+}
+
+.app-container {
+  padding: clamp(10px, 3vw, 20px);
+  min-height: 100vh;
+  background-color: var(--color-background);
+  font-family: var(--font-family);
+}

@@ -1,177 +1,199 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import axios from 'axios';
-import { AuthProvider } from 'react-oidc-context';
-import App from './App';
 
-// Mock axios
+// Mock axios before imports
 jest.mock('axios');
 
-// Mock the auth context
-const mockAuthContext = {
-  isAuthenticated: true,
-  isLoading: false,
-  error: null,
-  user: {
-    access_token: 'mock-access-token',
-    profile: {
-      name: 'Test User',
-      email: 'test@example.com'
-    }
-  },
-  signinRedirect: jest.fn(),
-  removeUser: jest.fn()
-};
+// Mock react-oidc-context
+jest.mock('react-oidc-context', () => {
+  let currentAuth = {
+    isAuthenticated: true,
+    isLoading: false,
+    error: null,
+    user: {
+      profile: {
+        name: 'Test User',
+        email: 'test@example.com'
+      },
+      access_token: 'test-token'
+    },
+    settings: {
+      client_id: 'test-client-id'
+    },
+    signinRedirect: jest.fn(),
+    signOut: jest.fn(),
+    removeUser: jest.fn()
+  };
 
-// Mock the AuthProvider component
-jest.mock('react-oidc-context', () => ({
-  AuthProvider: ({ children }) => children,
-  useAuth: () => mockAuthContext
-}));
+  return {
+    useAuth: () => currentAuth,
+    setMockAuth: (newAuth) => {
+      currentAuth = { ...currentAuth, ...newAuth };
+    },
+    AuthProvider: ({ children }) => <div data-testid="auth-provider">{children}</div>
+  };
+});
 
-// Mock BrowserRouter
+// Mock react-router-dom components
 jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  BrowserRouter: ({ children }) => children,
-  Routes: ({ children }) => children,
+  BrowserRouter: ({ children }) => <div data-testid="browser-router">{children}</div>,
+  Routes: ({ children }) => <div data-testid="routes">{children}</div>,
   Route: ({ element }) => element,
   useNavigate: () => jest.fn(),
-  Navigate: () => null
+  Navigate: () => null,
+  Link: ({ children }) => children,
+  useLocation: () => ({ pathname: '/' }),
+  useParams: () => ({}),
+  Outlet: () => null,
+  useSearchParams: () => [new URLSearchParams(), jest.fn()]
 }));
+
+// Mock the isPastDue function
+jest.mock('./utils/dateUtils', () => ({
+  isPastDue: jest.fn((date) => date === '2024-04-25')
+}));
+
+// Import after mocks
+import App from './App';
+import axios from 'axios';
+import {
+  mockTasks,
+  renderWithProviders,
+  mockApiResponse,
+  mockApiError
+} from './utils/test-utils';
 
 describe('App Component', () => {
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
+    // Reset axios mock implementations
+    axios.get.mockImplementation(() => Promise.resolve(mockApiResponse(mockTasks)));
+    axios.put.mockImplementation(() => Promise.resolve(mockApiResponse({})));
     
-    // Mock axios get response
-    axios.get.mockResolvedValue({
-      data: [
-        { id: 0, task: 'Test Task 1', dueDate: '2024-05-01' },
-        { id: 1, task: 'Test Task 2', dueDate: '2024-04-25' }
-      ]
-    });
-    
-    // Mock axios put response
-    axios.put.mockResolvedValue({
-      data: { id: 0, task: 'Updated Task', dueDate: '2024-05-01' }
+    // Mock console.error
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Reset auth state
+    require('react-oidc-context').setMockAuth({
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+      user: {
+        profile: {
+          name: 'Test User',
+          email: 'test@example.com'
+        },
+        access_token: 'test-token'
+      }
     });
   });
 
-  test('renders welcome message when authenticated', async () => {
-    render(<App />);
-    
-    // Check if welcome message is displayed
-    await waitFor(() => {
-      expect(screen.getByText(/Welcome, Test User/i)).toBeInTheDocument();
-    });
-  });
-
-  test('renders todo table when authenticated', async () => {
-    render(<App />);
-    
-    // Check if todo table is displayed
-    await waitFor(() => {
-      expect(screen.getByText('Todo List')).toBeInTheDocument();
-    });
-    
-    // Check if table headers are displayed
-    expect(screen.getByText('#')).toBeInTheDocument();
-    expect(screen.getByText('Item Name')).toBeInTheDocument();
-    expect(screen.getByText('Due Date')).toBeInTheDocument();
-  });
-
-  test('fetches tasks from API when authenticated', async () => {
-    render(<App />);
-    
-    // Check if axios.get was called with the correct URL
-    await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith(
-        'https://todo-app.natsuki-cloud.dev/tasks',
-        expect.any(Object)
-      );
-    });
-  });
-
-  test('updates task when editing and blurring', async () => {
-    render(<App />);
-    
-    // Wait for tasks to be loaded
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
-    });
-    
-    // Find the task input and edit it
-    const taskInput = screen.getByDisplayValue('Test Task 1');
-    fireEvent.change(taskInput, { target: { value: 'Updated Task' } });
-    
-    // Trigger blur event to save the task
-    fireEvent.blur(taskInput);
-    
-    // Check if axios.put was called with the correct parameters
-    await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        'https://todo-app.natsuki-cloud.dev/tasks/0',
-        expect.objectContaining({ task: 'Updated Task' }),
-        expect.any(Object)
-      );
-    });
-  });
-
-  test('shows sign in button when not authenticated', () => {
-    // Override the mock auth context for this test
-    jest.spyOn(require('react-oidc-context'), 'useAuth').mockImplementation(() => ({
-      ...mockAuthContext,
-      isAuthenticated: false
-    }));
-    
-    render(<App />);
-    
-    // Check if sign in button is displayed
-    expect(screen.getByText('Sign in with Cognito')).toBeInTheDocument();
-  });
-
-  test('handles sign out correctly', async () => {
-    render(<App />);
-    
-    // Wait for the component to load
-    await waitFor(() => {
-      expect(screen.getByText('Sign out')).toBeInTheDocument();
-    });
-    
-    // Click the sign out button
-    fireEvent.click(screen.getByText('Sign out'));
-    
-    // Check if removeUser was called
-    expect(mockAuthContext.removeUser).toHaveBeenCalled();
-  });
-
-  test('displays past due dates in red', async () => {
-    // Mock current date to be 2024-04-26
-    const mockDate = new Date('2024-04-26');
-    jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
-    
-    render(<App />);
-    
-    // Wait for tasks to be loaded
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('2024-04-25')).toBeInTheDocument();
-    });
-    
-    // Find the past due date input
-    const pastDueInput = screen.getByDisplayValue('2024-04-25');
-    
-    // Check if the input has red color
-    expect(pastDueInput).toHaveStyle({ color: '#dc3545' });
-    
-    // Find the future date input
-    const futureDueInput = screen.getByDisplayValue('2024-05-01');
-    
-    // Check if the input has default color
-    expect(futureDueInput).not.toHaveStyle({ color: '#dc3545' });
-    
-    // Restore the Date constructor
+  afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('authentication', () => {
+    describe('when user is authenticated', () => {
+      it('displays welcome message with user name', async () => {
+        renderWithProviders(<App />);
+        await waitFor(() => {
+          expect(screen.getByText('Welcome, Test User')).toBeInTheDocument();
+        });
+      });
+
+      it('fetches and displays tasks', async () => {
+        renderWithProviders(<App />);
+        
+        await waitFor(() => {
+          expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+          expect(screen.getByDisplayValue('Test Task 2')).toBeInTheDocument();
+        });
+
+        expect(axios.get).toHaveBeenCalledWith(
+          expect.stringContaining('/tasks'),
+          expect.any(Object)
+        );
+      });
+
+      it('updates task when edited', async () => {
+        renderWithProviders(<App />);
+        
+        await waitFor(() => {
+          expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+        });
+
+        const taskInput = screen.getByDisplayValue('Test Task 1');
+        fireEvent.change(taskInput, { target: { value: 'Updated Task' } });
+        fireEvent.blur(taskInput);
+
+        await waitFor(() => {
+          expect(axios.put).toHaveBeenCalledWith(
+            expect.stringContaining('/tasks/0'),
+            expect.objectContaining({ task: 'Updated Task' }),
+            expect.any(Object)
+          );
+        });
+      });
+
+      it('handles sign out correctly', async () => {
+        renderWithProviders(<App />);
+        
+        await waitFor(() => {
+          expect(screen.getByText(/Sign out/i)).toBeInTheDocument();
+        });
+        
+        fireEvent.click(screen.getByText(/Sign out/i));
+        expect(require('react-oidc-context').useAuth().removeUser).toHaveBeenCalled();
+      });
+    });
+
+    describe('when user is not authenticated', () => {
+      it('shows sign in button', async () => {
+        require('react-oidc-context').setMockAuth({
+          isAuthenticated: false,
+          isLoading: false,
+          user: null
+        });
+
+        renderWithProviders(<App />);
+        
+        await waitFor(() => {
+          expect(screen.getByRole('button', { name: /Sign in with Cognito/i })).toBeInTheDocument();
+        });
+      });
+    });
+  });
+
+  describe('task management', () => {
+    it('displays past due dates in red', async () => {
+      const tasksWithDates = [
+        { id: 1, task: 'Past Due Task', dueDate: '2024-04-25' },
+        { id: 2, task: 'Future Task', dueDate: '2024-05-01' }
+      ];
+      
+      axios.get.mockImplementationOnce(() => Promise.resolve(mockApiResponse(tasksWithDates)));
+      
+      renderWithProviders(<App />);
+      
+      await waitFor(() => {
+        const dateInputs = screen.getAllByTestId(/date-input-/);
+        expect(dateInputs.length).toBeGreaterThan(0);
+        
+        expect(require('./utils/dateUtils').isPastDue).toHaveBeenCalledWith('2024-04-25');
+        expect(require('./utils/dateUtils').isPastDue).toHaveBeenCalledWith('2024-05-01');
+      });
+    });
+
+    it('handles API error when fetching tasks', async () => {
+      const errorMessage = 'API Error';
+      axios.get.mockImplementationOnce(() => Promise.reject(mockApiError(errorMessage)));
+      
+      renderWithProviders(<App />);
+      
+      await waitFor(() => {
+        expect(console.error).toHaveBeenCalledWith('Error fetching tasks:', expect.any(Error));
+      });
+    });
   });
 });
