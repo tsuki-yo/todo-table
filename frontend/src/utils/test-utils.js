@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import { AuthProvider } from 'react-oidc-context';
 
 // Common mock data
 export const mockTasks = [
@@ -7,29 +8,15 @@ export const mockTasks = [
   { id: 2, task: 'Test Task 2', dueDate: '2024-03-21' }
 ];
 
-export const mockAuth = {
-  isAuthenticated: true,
-  isLoading: false,
-  error: null,
-  user: {
-    profile: {
-      name: 'Test User',
-      email: 'test@example.com'
-    },
-    access_token: 'test-token'
-  },
-  settings: {
-    client_id: 'test-client-id'
-  },
-  signinRedirect: jest.fn(),
-  signOut: jest.fn(),
-  removeUser: jest.fn()
-};
+// Mock react-oidc-context
+jest.mock('react-oidc-context');
 
 // Custom render function with providers
-export function renderWithProviders(ui, { auth = mockAuth, ...renderOptions } = {}) {
+export function renderWithProviders(ui, { ...renderOptions } = {}) {
   const Wrapper = ({ children }) => (
-    <div data-testid="test-wrapper">{children}</div>
+    <AuthProvider>
+      {children}
+    </AuthProvider>
   );
   return render(ui, { wrapper: Wrapper, ...renderOptions });
 }

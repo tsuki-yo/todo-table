@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import { useAuth } from "react-oidc-context";
 import DateInput from './DateInput';
-import './TaskTable.css';
+import '../../styles/base.css';
 
 const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20;

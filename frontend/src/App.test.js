@@ -177,11 +177,14 @@ describe('App Component', () => {
       renderWithProviders(<App />);
       
       await waitFor(() => {
-        const dateInputs = screen.getAllByTestId(/date-input-/);
+        const dateInputs = screen.getAllByRole('date');
         expect(dateInputs.length).toBeGreaterThan(0);
         
-        expect(require('./utils/dateUtils').isPastDue).toHaveBeenCalledWith('2024-04-25');
-        expect(require('./utils/dateUtils').isPastDue).toHaveBeenCalledWith('2024-05-01');
+        const pastDueInput = dateInputs[0];
+        const futureInput = dateInputs[1];
+        
+        expect(pastDueInput).toHaveClass('past-due');
+        expect(futureInput).not.toHaveClass('past-due');
       });
     });
 
