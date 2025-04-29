@@ -1,0 +1,25 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background);
+  font-family: var(--font-family);
+}
+
+.login-card {
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.login-title {
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+}
+
+.login-description {
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+} 
