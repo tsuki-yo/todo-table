@@ -1,25 +1,21 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import axios from 'axios';
 import TaskTable from '../TaskTable';
+import { renderWithProviders, mockAuth, mockTasks } from '../../../utils/test-utils';
 
-const mockTasks = [
-  {
-    id: 1,
-    task: 'Test Task 1',
-    dueDate: '2024-03-20'
-  },
-  {
-    id: 2,
-    task: 'Test Task 2',
-    dueDate: '2024-03-21'
-  }
-];
+jest.mock('axios');
 
 const renderTaskTable = () => {
-  return render(<TaskTable tasks={mockTasks} />);
+  axios.get.mockResolvedValue({ data: mockTasks });
+  return renderWithProviders(<TaskTable />);
 };
 
 describe('TaskTable', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders task table with correct headers', () => {
     renderTaskTable();
     
@@ -28,25 +24,35 @@ describe('TaskTable', () => {
     expect(screen.getByText('Due Date')).toBeInTheDocument();
   });
 
-  it('renders tasks with correct data', () => {
+  it('renders tasks with correct data', async () => {
     renderTaskTable();
     
-    expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Test Task 2')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Test Task 2')).toBeInTheDocument();
+    });
   });
 
-  it('handles task input change correctly', () => {
+  it('handles task input change correctly', async () => {
     renderTaskTable();
     
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+    });
+
     const taskInput = screen.getByDisplayValue('Test Task 1');
     fireEvent.change(taskInput, { target: { value: 'Updated Task 1' } });
     expect(taskInput).toHaveValue('Updated Task 1');
   });
 
-  it('handles date change correctly', () => {
+  it('handles date change correctly', async () => {
     renderTaskTable();
     
-    const dateInput = screen.getAllByRole('textbox')[1];
+    await waitFor(() => {
+      expect(screen.getAllByRole('date')[0]).toBeInTheDocument();
+    });
+
+    const dateInput = screen.getAllByRole('date')[1];
     fireEvent.change(dateInput, { target: { value: '2024-03-22' } });
     expect(dateInput).toHaveValue('2024-03-22');
   });
