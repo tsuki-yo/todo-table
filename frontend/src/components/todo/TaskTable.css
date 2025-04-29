@@ -1,0 +1,37 @@
+.task-table-container {
+  overflow-x: auto;
+}
+
+.task-table-title {
+  color: var(--color-text-primary);
+  margin-bottom: 20px;
+  font-size: var(--font-size-large);
+}
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 300px;
+}
+
+.task-table th {
+  text-align: left;
+}
+
+.task-table td.text-center {
+  text-align: center;
+}
+
+.task-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-small);
+  touch-action: manipulation;
+}
+
+.task-input::placeholder {
+  color: var(--color-text-secondary);
+} 

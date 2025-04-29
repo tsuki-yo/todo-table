@@ -1,0 +1,25 @@
+.header-container {
+  margin-bottom: 20px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-large);
+  flex: 1 1 auto;
+  word-break: break-word;
+}
+
+.header-button-container {
+  flex: 0 0 auto;
+} 
