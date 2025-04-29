@@ -1,4 +1,4 @@
-import { isPastDue } from './dateUtils';
+import { isPastDue } from '../dateUtils';
 
 describe('isPastDue', () => {
   let originalDate;
