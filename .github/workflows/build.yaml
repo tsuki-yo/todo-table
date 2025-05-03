@@ -14,10 +14,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: dev
 
       - name: Automatic Tagging of Releases
         id: increment-git-tag
         run: |
+          git checkout deploy
+          git merge dev --no-edit
           bash ./.github/script/git_update.sh -v patch
 
   # 2) Build frontend, using the single version from bump-version
@@ -28,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: deploy
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -55,6 +61,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: deploy
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
