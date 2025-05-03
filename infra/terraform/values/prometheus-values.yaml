@@ -13,6 +13,7 @@ grafana:
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+      alb.ingress.kubernetes.io/remove-extra-resources: "true"
     hosts:
       - grafana.yourdomain.com  # Replace with your domain
     tls:
