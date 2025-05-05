@@ -66,10 +66,17 @@ function App() {
     }
   }, [auth.isAuthenticated, auth.user, guestAuth.isGuestLoggedIn, guestAuth.guestUser]);
 
+  // Handle auth state changes
+  useEffect(() => {
+    if (auth.isAuthenticated && window.location.pathname === '/login') {
+      window.location.href = '/';
+    }
+  }, [auth.isAuthenticated]);
+
   return (
     <Router>
       <div className="App">
-        <Header user={user} />
+        {user && <Header user={user} />}
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route

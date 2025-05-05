@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
 import { useGuestAuth } from '../../contexts/GuestAuthContext';
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const auth = useAuth();
   const guestAuth = useGuestAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGuestLogin = () => {
     setIsLoading(true);
     guestAuth.loginAsGuest();
     setIsLoading(false);
+    navigate('/');
   };
 
   return (
