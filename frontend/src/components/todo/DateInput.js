@@ -10,6 +10,7 @@ const DateInput = ({ value, onChange, onBlur, isPastDue }) => {
       onBlur={onBlur}
       className="date-input"
       style={{ color: isPastDue ? '#dc3545' : 'inherit' }}
+      data-testid="date-input"
     />
   );
 };
