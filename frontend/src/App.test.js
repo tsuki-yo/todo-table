@@ -98,7 +98,7 @@ describe('App Component', () => {
       it('displays welcome message with user name', async () => {
         renderWithProviders(<App />);
         await waitFor(() => {
-          expect(screen.getByText('Welcome, Test User')).toBeInTheDocument();
+          expect(screen.getByText(/Welcome, Test User!/)).toBeInTheDocument();
         });
       });
 
@@ -140,10 +140,10 @@ describe('App Component', () => {
         renderWithProviders(<App />);
         
         await waitFor(() => {
-          expect(screen.getByText(/Sign out/i)).toBeInTheDocument();
+          expect(screen.getByText(/Logout/i)).toBeInTheDocument();
         });
         
-        fireEvent.click(screen.getByText(/Sign out/i));
+        fireEvent.click(screen.getByText(/Logout/i));
         expect(require('react-oidc-context').useAuth().removeUser).toHaveBeenCalled();
       });
     });

@@ -1,18 +1,34 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
-import { useGuestAuth } from '../../contexts/GuestAuthContext';
+import { useNavigate, Navigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const auth = useAuth();
-  const guestAuth = useGuestAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGuestLogin = () => {
     setIsLoading(true);
-    guestAuth.loginAsGuest();
+    // Set guest user in local storage
+    localStorage.setItem('authType', 'guest');
+    localStorage.setItem('guestUser', JSON.stringify({
+      id: 'guest-' + Math.random().toString(36).substr(2, 9),
+      name: 'Guest User',
+      isGuest: true
+    }));
     setIsLoading(false);
+    navigate('/');
   };
+
+  const handleCognitoLogin = () => {
+    auth.signinRedirect();
+  };
+
+  // If authenticated via OIDC or guest, redirect to dashboard
+  if (auth.isAuthenticated || localStorage.getItem('authType') === 'guest') {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="login-container">
@@ -23,7 +39,7 @@ const LoginPage = () => {
         </p>
         <div className="button-container">
           <button 
-            onClick={() => auth.signinRedirect()}
+            onClick={handleCognitoLogin}
             className="sign-in-button"
             onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
             onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}

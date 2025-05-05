@@ -1,54 +1,48 @@
 import React from 'react';
 import { useAuth } from 'react-oidc-context';
-import { useGuestAuth } from '../../contexts/GuestAuthContext';
+import { useNavigate } from 'react-router-dom';
 import './Header.css';
 
-const Header = ({ user }) => {
+const Header = () => {
   const auth = useAuth();
-  const guestAuth = useGuestAuth();
+  const navigate = useNavigate();
+  const isGuestUser = localStorage.getItem('authType') === 'guest';
+  const guestUser = isGuestUser ? JSON.parse(localStorage.getItem('guestUser')) : null;
 
-  const handleSignOut = () => {
-    if (user?.isGuest) {
-      guestAuth.logoutGuest();
+  const handleLogout = () => {
+    if (isGuestUser) {
+      // Clear guest data
+      localStorage.removeItem('authType');
+      localStorage.removeItem('guestUser');
+      navigate('/login');
     } else {
+      // OIDC logout
       auth.removeUser();
       auth.signOut();
     }
   };
 
-  const getUserDisplayName = () => {
-    if (!user) return '';
-    if (user.isGuest) return 'Guest';
-    return user.profile?.name || user.profile?.email || 'User';
-  };
+  const user = isGuestUser ? guestUser : auth.user;
 
   return (
-    <div className="card header-container">
+    <header className="header">
       <div className="header-content">
         <h1 className="app-title">Todo Table</h1>
         <div className="user-info">
-          {user ? (
+          {user && (
             <>
-              <h2 className="header-title">
-                {user.isGuest ? 'Welcome, Guest' : `Welcome, ${getUserDisplayName()}`}
-              </h2>
-              <div className="header-button-container">
-                <button 
-                  onClick={handleSignOut}
-                  className="sign-out"
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
-                >
-                  Sign out
-                </button>
-              </div>
+              <span className="welcome-message">
+                Welcome, {isGuestUser ? user.name : user.profile?.name || 'User'}!
+              </span>
+              {isGuestUser && <span className="guest-badge">(Guest)</span>}
+              <button onClick={handleLogout} className="logout-button">
+                Logout
+              </button>
             </>
-          ) : (
-            <h2 className="header-title">Please sign in</h2>
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
