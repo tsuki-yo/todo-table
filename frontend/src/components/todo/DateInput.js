@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/base.css';
+import './DateInput.css';
 
 const DateInput = ({ value, onChange, onBlur, isPastDue }) => {
   return (
