@@ -16,7 +16,7 @@
   gap: 1rem;
 }
 
-.header-title {
+.app-title {
   margin: 0;
   color: #333;
   font-size: clamp(1.2rem, 4vw, 1.5rem);
@@ -24,19 +24,25 @@
   word-break: break-word;
 }
 
-.header-button-container {
-  flex: 0 0 auto;
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.header-button-container button.sign-in {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.header-title {
+  margin: 0;
+  color: #666;
+  font-size: clamp(0.875rem, 3vw, 1rem);
+}
+
+.welcome-message {
+  color: #666;
+  font-size: clamp(0.875rem, 3vw, 1rem);
+}
+
+.header-button-container {
+  flex: 0 0 auto;
 }
 
 .header-button-container button.sign-out {

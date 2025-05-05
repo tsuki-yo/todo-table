@@ -19,34 +19,36 @@ const Header = ({ user }) => {
   const getUserDisplayName = () => {
     if (!user) return '';
     if (user.isGuest) return 'Guest';
-    return user.profile?.name || 'User';
+    return user.profile?.name || user.profile?.email || 'User';
   };
 
   return (
-    <header className="header">
+    <div className="card header-container">
       <div className="header-content">
         <h1 className="app-title">Todo Table</h1>
         <div className="user-info">
           {user ? (
             <>
-              <span className="welcome-message">
-                Welcome, {getUserDisplayName()}
-              </span>
-              <button 
-                onClick={handleSignOut}
-                className="sign-out-button"
-                onMouseOver={(e) => e.target.style.backgroundColor = '#dc3545'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#ff4444'}
-              >
-                Sign Out
-              </button>
+              <h2 className="header-title">
+                {user.isGuest ? 'Welcome, Guest' : `Welcome, ${getUserDisplayName()}`}
+              </h2>
+              <div className="header-button-container">
+                <button 
+                  onClick={handleSignOut}
+                  className="sign-out"
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+                >
+                  Sign out
+                </button>
+              </div>
             </>
           ) : (
-            <span className="welcome-message">Please sign in</span>
+            <h2 className="header-title">Please sign in</h2>
           )}
         </div>
       </div>
-    </header>
+    </div>
   );
 };
 
