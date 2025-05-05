@@ -5,11 +5,12 @@ const DateInput = ({ value, onChange, onBlur, isPastDue }) => {
   return (
     <input
       type="date"
+      role="date"
+      data-testid="date-input"
       value={value}
       onChange={onChange}
       onBlur={onBlur}
-      className="date-input"
-      style={{ color: isPastDue ? '#dc3545' : 'inherit' }}
+      className={`date-input${isPastDue ? ' past-due' : ''}`}
     />
   );
 };

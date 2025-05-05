@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { AuthProvider } from 'react-oidc-context';
+import { BrowserRouter } from 'react-router-dom';
 
 // Common mock data
 export const mockTasks = [
@@ -14,9 +15,11 @@ jest.mock('react-oidc-context');
 // Custom render function with providers
 export function renderWithProviders(ui, { ...renderOptions } = {}) {
   const Wrapper = ({ children }) => (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </BrowserRouter>
   );
   return render(ui, { wrapper: Wrapper, ...renderOptions });
 }

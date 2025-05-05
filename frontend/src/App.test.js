@@ -49,11 +49,6 @@ jest.mock('react-router-dom', () => ({
   useSearchParams: () => [new URLSearchParams(), jest.fn()]
 }));
 
-// Mock the isPastDue function
-jest.mock('./utils/dateUtils', () => ({
-  isPastDue: jest.fn((date) => date === '2024-04-25')
-}));
-
 // Import after mocks
 import App from './App';
 import axios from 'axios';
@@ -65,6 +60,8 @@ import {
 } from './utils/test-utils';
 
 describe('App Component', () => {
+  let originalDate;
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset axios mock implementations
@@ -87,10 +84,26 @@ describe('App Component', () => {
         access_token: 'test-token'
       }
     });
+
+    // Save original Date
+    originalDate = global.Date;
+
+    // Mock current date to 2024-04-26 12:00:00 UTC
+    const mockDate = new Date('2024-04-26T12:00:00Z');
+    global.Date = class extends Date {
+      constructor(...args) {
+        if (args.length === 0) {
+          return mockDate;
+        }
+        return new originalDate(...args);
+      }
+    };
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    // Restore original Date
+    global.Date = originalDate;
   });
 
   describe('authentication', () => {
@@ -106,8 +119,8 @@ describe('App Component', () => {
         renderWithProviders(<App />);
         
         await waitFor(() => {
-          expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
-          expect(screen.getByDisplayValue('Test Task 2')).toBeInTheDocument();
+          expect(screen.getByText('Test Task 1')).toBeInTheDocument();
+          expect(screen.getByText('Test Task 2')).toBeInTheDocument();
         });
 
         expect(axios.get).toHaveBeenCalledWith(
@@ -120,16 +133,21 @@ describe('App Component', () => {
         renderWithProviders(<App />);
         
         await waitFor(() => {
-          expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+          expect(screen.getByText('Test Task 1')).toBeInTheDocument();
         });
+
+        const editButton = screen.getAllByText('Edit')[0];
+        fireEvent.click(editButton);
 
         const taskInput = screen.getByDisplayValue('Test Task 1');
         fireEvent.change(taskInput, { target: { value: 'Updated Task' } });
-        fireEvent.blur(taskInput);
+
+        const saveButton = screen.getByText('Save');
+        fireEvent.click(saveButton);
 
         await waitFor(() => {
           expect(axios.put).toHaveBeenCalledWith(
-            expect.stringContaining('/tasks/0'),
+            expect.stringContaining('/tasks/1'),
             expect.objectContaining({ task: 'Updated Task' }),
             expect.any(Object)
           );

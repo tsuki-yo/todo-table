@@ -16,9 +16,13 @@ describe('TaskTable', () => {
     jest.clearAllMocks();
   });
 
-  it('renders task table with correct headers', () => {
+  it('renders task table with correct headers', async () => {
     renderTaskTable();
     
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
     expect(screen.getByText('#')).toBeInTheDocument();
     expect(screen.getByText('Item Name')).toBeInTheDocument();
     expect(screen.getByText('Due Date')).toBeInTheDocument();
@@ -28,8 +32,9 @@ describe('TaskTable', () => {
     renderTaskTable();
     
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Test Task 2')).toBeInTheDocument();
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
+      expect(screen.getByText('Test Task 2')).toBeInTheDocument();
     });
   });
 
@@ -37,8 +42,12 @@ describe('TaskTable', () => {
     renderTaskTable();
     
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Test Task 1')).toBeInTheDocument();
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      expect(screen.getByText('Test Task 1')).toBeInTheDocument();
     });
+
+    const editButton = screen.getAllByText('Edit')[0];
+    fireEvent.click(editButton);
 
     const taskInput = screen.getByDisplayValue('Test Task 1');
     fireEvent.change(taskInput, { target: { value: 'Updated Task 1' } });
@@ -49,8 +58,12 @@ describe('TaskTable', () => {
     renderTaskTable();
     
     await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
       expect(screen.getAllByRole('date')[0]).toBeInTheDocument();
     });
+
+    const editButton = screen.getAllByText('Edit')[1];
+    fireEvent.click(editButton);
 
     const dateInput = screen.getAllByRole('date')[1];
     fireEvent.change(dateInput, { target: { value: '2024-03-22' } });
