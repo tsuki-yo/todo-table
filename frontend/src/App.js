@@ -18,6 +18,9 @@ function App() {
         anonymousId: guestToken,
         user: null,
         access_token: guestToken
+      }).catch(err => {
+        console.error('Error setting guest user:', err);
+        localStorage.removeItem('guest_token');
       });
     }
   }, [auth]);

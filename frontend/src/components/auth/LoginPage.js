@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const auth = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const generateGuestToken = () => {
@@ -27,8 +29,11 @@ const LoginPage = () => {
       anonymousId: guestToken,
       user: null,
       access_token: guestToken
+    }).then(() => {
+      setIsLoading(false);
+      // Force a navigation to the root path
+      navigate('/');
     });
-    setIsLoading(false);
   };
 
   return (
