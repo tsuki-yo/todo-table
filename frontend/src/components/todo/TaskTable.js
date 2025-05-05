@@ -1,21 +1,20 @@
-import React from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useAuth } from "react-oidc-context";
 import DateInput from './DateInput';
-import '../../styles/base.css';
+import './TaskTable.css';
 
 const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20;
 
 const TaskTable = () => {
   const auth = useAuth();
-  const [tasks, setTasks] = React.useState(
+  const [tasks, setTasks] = useState(
     Array(TOTAL_ROWS).fill({ id: null, task: "", dueDate: "" })
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (auth.isAuthenticated) {
-      console.log('Auth user profile:', auth.user?.profile);
       axios
         .get(API_URL, {
           headers: { Authorization: `Bearer ${auth.user?.access_token}` },
@@ -48,15 +47,23 @@ const TaskTable = () => {
       .catch((err) => console.error("Error updating task:", err));
   };
 
+  const isPastDue = (dateString) => {
+    if (!dateString) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);  // Reset time part for accurate date comparison
+    const dueDate = new Date(dateString);
+    return dueDate < today;
+  };
+
   return (
-    <div className="card task-table-container">
+    <div className="task-table-container">
       <h2 className="task-table-title">Todo List</h2>
       <table className="task-table">
         <thead>
           <tr className="table-header">
-            <th className="table-cell">#</th>
-            <th className="table-cell">Item Name</th>
-            <th className="table-cell">Due Date</th>
+            <th>#</th>
+            <th>Item Name</th>
+            <th>Due Date</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +85,7 @@ const TaskTable = () => {
                   value={task?.dueDate || ""}
                   onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
                   onBlur={() => handleBlur(task, index)}
-                  isPastDue={task?.dueDate === '2024-04-25'}
+                  isPastDue={isPastDue(task?.dueDate)}
                 />
               </td>
             </tr>

@@ -1,4 +1,8 @@
 .header-container {
+  background: white;
+  padding: clamp(1rem, 4vw, 2rem);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
 }
 
@@ -14,12 +18,28 @@
 
 .header-title {
   margin: 0;
-  color: var(--color-text-primary);
-  font-size: var(--font-size-large);
+  color: #333;
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
   flex: 1 1 auto;
   word-break: break-word;
 }
 
 .header-button-container {
   flex: 0 0 auto;
+}
+
+.header-button-container button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.header-button-container button:hover {
+  background-color: #0056b3;
 } 
