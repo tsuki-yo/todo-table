@@ -14,15 +14,17 @@ const Header = () => {
   };
 
   return (
-    <div className="card header-container">
+    <div className="header-container">
       <div className="header-content">
         <h2 className="header-title">
           Welcome, {auth.user?.profile.name || auth.user?.profile.email}
         </h2>
         <div className="header-button-container">
-          <button
+          <button 
             onClick={signOutRedirect}
-            className="button button-danger"
+            className="sign-out"
+            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
           >
             Sign out
           </button>
