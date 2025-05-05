@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const AWS = require("aws-sdk");
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
+const crypto = require("crypto");
 
 const app = express();
 app.use(express.json());
@@ -24,6 +25,15 @@ const verifier = CognitoJwtVerifier.create({
 // Token verification middleware
 async function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
+  
+  // Check if it's an anonymous token
+  if (authHeader && authHeader.startsWith("Anonymous ")) {
+    const anonymousId = authHeader.split(" ")[1];
+    req.user = { sub: `anonymous_${anonymousId}` };
+    return next();
+  }
+  
+  // Regular Cognito token verification
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized: No token provided" });
   }
@@ -31,9 +41,7 @@ async function verifyToken(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
-    // Verify the token with Cognito
     const payload = await verifier.verify(token);
-    // Attach token payload (user information) to the request object
     req.user = payload;
     next();
   } catch (err) {
@@ -41,6 +49,17 @@ async function verifyToken(req, res, next) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
+
+// Generate anonymous user ID
+function generateAnonymousId() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+// Route to generate anonymous user ID
+app.post("/anonymous", (req, res) => {
+  const anonymousId = generateAnonymousId();
+  res.json({ anonymousId });
+});
 
 // Apply token verification middleware to all routes under "/tasks"
 app.use("/tasks", verifyToken);

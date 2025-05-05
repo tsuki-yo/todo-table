@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useAuth } from "react-oidc-context";
+import { getTasks, updateTask } from "../../services/apiService";
 import DateInput from './DateInput';
 import './TaskTable.css';
 
-const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20;
 
 const TaskTable = () => {
@@ -14,21 +13,23 @@ const TaskTable = () => {
   );
 
   useEffect(() => {
-    if (auth.isAuthenticated) {
-      axios
-        .get(API_URL, {
-          headers: { Authorization: `Bearer ${auth.user?.access_token}` },
-        })
-        .then((res) => {
-          setTasks(
-            [...Array(TOTAL_ROWS)].map((_, index) =>
-              res.data[index] || { id: null, task: "", dueDate: "" }
-            )
-          );
-        })
-        .catch((err) => console.error("Error fetching tasks:", err));
+    const fetchTasks = async () => {
+      try {
+        const data = await getTasks();
+        setTasks(
+          [...Array(TOTAL_ROWS)].map((_, index) =>
+            data[index] || { id: null, task: "", dueDate: "" }
+          )
+        );
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      }
+    };
+
+    if (auth.isAuthenticated || localStorage.getItem('anonymousToken')) {
+      fetchTasks();
     }
-  }, [auth.isAuthenticated, auth.user]);
+  }, [auth.isAuthenticated]);
 
   const handleEdit = (index, field, value) => {
     setTasks((prevTasks) => {
@@ -38,13 +39,13 @@ const TaskTable = () => {
     });
   };
 
-  const handleBlur = (task, index) => {
+  const handleBlur = async (task, index) => {
     if (!task.task) return;
-    axios
-      .put(`${API_URL}/${index}`, task, {
-        headers: { Authorization: `Bearer ${auth.user?.access_token}` },
-      })
-      .catch((err) => console.error("Error updating task:", err));
+    try {
+      await updateTask(index, task);
+    } catch (err) {
+      console.error("Error updating task:", err);
+    }
   };
 
   const isPastDue = (dateString) => {
