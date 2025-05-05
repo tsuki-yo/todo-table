@@ -2,12 +2,12 @@
   width: 100%;
   border: none;
   background: transparent;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-small);
+  padding: 4px;
+  border-radius: 3px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   touch-action: manipulation;
 }
 
 .date-input.past-due {
-  color: var(--color-danger);
+  color: #dc3545;
 } 
