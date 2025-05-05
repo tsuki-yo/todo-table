@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from "react-oidc-context";
 import DateInput from './DateInput';
 import '../../styles/base.css';
+import './TaskTable.css';
 
 const API_URL = "https://todo-app.natsuki-cloud.dev/tasks";
 const TOTAL_ROWS = 20;
@@ -49,7 +50,7 @@ const TaskTable = () => {
   };
 
   return (
-    <div className="card task-table-container">
+    <div className="task-table-container">
       <h2 className="task-table-title">Todo List</h2>
       <table className="task-table">
         <thead>
@@ -78,7 +79,7 @@ const TaskTable = () => {
                   value={task?.dueDate || ""}
                   onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
                   onBlur={() => handleBlur(task, index)}
-                  isPastDue={task?.dueDate === '2024-04-25'}
+                  isPastDue={task?.dueDate && new Date(task.dueDate) < new Date()}
                 />
               </td>
             </tr>
