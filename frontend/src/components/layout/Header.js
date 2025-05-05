@@ -1,40 +1,52 @@
 import React from 'react';
-import { useAuth } from "react-oidc-context";
+import { useAuth } from 'react-oidc-context';
+import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ user }) => {
   const auth = useAuth();
+  const guestAuth = useGuestAuth();
 
   const handleSignOut = () => {
-    if (auth.isAnonymous) {
-      auth.removeUser();
+    if (user?.isGuest) {
+      guestAuth.logoutGuest();
     } else {
-      const clientId = auth.settings.client_id;
-      const logoutUri = "https://todo-app.natsuki-cloud.dev";
-      const cognitoDomain = "https://ap-northeast-1rhcqr8mhf.auth.ap-northeast-1.amazoncognito.com";
-      auth.removeUser(); // Clear the auth state first
-      window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+      auth.removeUser();
+      auth.signOut();
     }
   };
 
+  const getUserDisplayName = () => {
+    if (!user) return '';
+    if (user.isGuest) return 'Guest';
+    return user.profile?.name || 'User';
+  };
+
   return (
-    <div className="header-container">
+    <header className="header">
       <div className="header-content">
-        <h2 className="header-title">
-          {auth.isAnonymous ? 'Welcome, Guest' : `Welcome, ${auth.user?.profile.name || auth.user?.profile.email}`}
-        </h2>
-        <div className="header-button-container">
-          <button 
-            onClick={handleSignOut}
-            className="sign-out"
-            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
-          >
-            Sign out
-          </button>
+        <h1 className="app-title">Todo Table</h1>
+        <div className="user-info">
+          {user ? (
+            <>
+              <span className="welcome-message">
+                Welcome, {getUserDisplayName()}
+              </span>
+              <button 
+                onClick={handleSignOut}
+                className="sign-out-button"
+                onMouseOver={(e) => e.target.style.backgroundColor = '#dc3545'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#ff4444'}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <span className="welcome-message">Please sign in</span>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

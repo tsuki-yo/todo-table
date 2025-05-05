@@ -1,25 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
+import { useGuestAuth } from '../../contexts/GuestAuthContext';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const auth = useAuth();
+  const guestAuth = useGuestAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGuestLogin = () => {
     setIsLoading(true);
-    // Simple guest token - just a timestamp to make it unique
-    const guestToken = `guest_${Date.now()}`;
-    
-    // Set auth state directly
-    auth.setUser({
-      isAuthenticated: true,
-      isAnonymous: true,
-      anonymousId: guestToken,
-      user: null,
-      access_token: guestToken
-    });
-    
+    guestAuth.loginAsGuest();
     setIsLoading(false);
   };
 
