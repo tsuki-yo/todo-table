@@ -5,9 +5,34 @@ on:
     branches: [dev]
 
 jobs:
+  # 0) Run tests
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd frontend
+          npm run test:ci
+
   # 1) Rebase deploy onto dev
   rebase-deploy:
     if: github.actor == 'tsuki-yo'
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout dev
