@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/base.css';
+import './DateInput.css';
 
 const DateInput = ({ value, onChange, onBlur, isPastDue }) => {
   return (
@@ -8,8 +8,6 @@ const DateInput = ({ value, onChange, onBlur, isPastDue }) => {
       value={value}
       onChange={onChange}
       onBlur={onBlur}
-      role="date"
-      data-testid="date-input"
       className={`date-input ${isPastDue ? 'past-due' : ''}`}
     />
   );
