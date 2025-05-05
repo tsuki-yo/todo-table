@@ -2,12 +2,38 @@
   width: 100%;
   border: none;
   background: transparent;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-small);
+  padding: 4px;
+  border-radius: 3px;
+  font-size: clamp(0.875rem, 3vw, 1rem);
   touch-action: manipulation;
+  color: inherit;
 }
 
 .date-input.past-due {
-  color: var(--color-danger);
+  color: #dc3545;
+}
+
+/* Override browser's default date input styles */
+.date-input::-webkit-datetime-edit {
+  color: inherit;
+}
+
+.date-input::-webkit-datetime-edit-fields-wrapper {
+  color: inherit;
+}
+
+.date-input::-webkit-datetime-edit-text {
+  color: inherit;
+}
+
+.date-input::-webkit-datetime-edit-month-field {
+  color: inherit;
+}
+
+.date-input::-webkit-datetime-edit-day-field {
+  color: inherit;
+}
+
+.date-input::-webkit-datetime-edit-year-field {
+  color: inherit;
 } 
