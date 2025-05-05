@@ -5,10 +5,28 @@ on:
     branches: [dev]
 
 jobs:
-  # 1) Bump version in a single job, store it as output
+  # 1) Rebase deploy onto dev
+  rebase-deploy:
+    if: github.actor == 'tsuki-yo'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+
+      - name: Fetch and rebase deploy
+        run: |
+          git fetch origin deploy:deploy
+          git checkout deploy
+          git rebase dev
+          git push origin deploy --force
+
+  # 2) Bump version in a single job, store it as output
   bump-version:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
+    needs: [rebase-deploy]
     outputs:
       new_tag: ${{ steps.increment-git-tag.outputs.new_tag }}
     steps:
@@ -20,11 +38,9 @@ jobs:
       - name: Automatic Tagging of Releases
         id: increment-git-tag
         run: |
-          git checkout deploy
-          git merge dev --no-edit
           bash ./.github/script/git_update.sh -v patch
 
-  # 2) Build frontend, using the single version from bump-version
+  # 3) Build frontend, using the single version from bump-version
   build-frontend:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
@@ -53,7 +69,7 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG} -f frontend/Dockerfile frontend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG}
 
-  # 3) Build backend, using the same version from bump-version
+  # 4) Build backend, using the same version from bump-version
   build-backend:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
