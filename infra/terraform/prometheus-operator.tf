@@ -18,4 +18,6 @@ resource "helm_release" "prometheus_operator" {
   }
 
   depends_on = [kubernetes_namespace.monitoring]
+
+  timeout = 1200  # 20 minutes
 } 
