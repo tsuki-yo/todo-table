@@ -1,39 +1,26 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
-import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
   const auth = useAuth();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
-  const generateGuestToken = () => {
-    // Generate a random string for the guest token
-    const randomBytes = new Uint8Array(16);
-    window.crypto.getRandomValues(randomBytes);
-    return Array.from(randomBytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  };
 
   const handleGuestLogin = () => {
     setIsLoading(true);
-    const guestToken = generateGuestToken();
-    // Store the guest token in localStorage
-    localStorage.setItem('guest_token', guestToken);
-    // Set the auth state with the generated token
+    // Simple guest token - just a timestamp to make it unique
+    const guestToken = `guest_${Date.now()}`;
+    
+    // Set auth state directly
     auth.setUser({
       isAuthenticated: true,
       isAnonymous: true,
       anonymousId: guestToken,
       user: null,
       access_token: guestToken
-    }).then(() => {
-      setIsLoading(false);
-      // Force a navigation to the root path
-      navigate('/');
     });
+    
+    setIsLoading(false);
   };
 
   return (
