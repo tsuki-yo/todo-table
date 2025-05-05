@@ -14,7 +14,9 @@ const LoginPage = () => {
         </p>
         <button 
           onClick={() => auth.signinRedirect()}
-          className="button button-primary"
+          className="sign-in-button"
+          onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
         >
           Sign in with Cognito
         </button>
