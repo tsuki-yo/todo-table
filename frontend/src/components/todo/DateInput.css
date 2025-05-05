@@ -1,13 +1,24 @@
 .date-input {
   width: 100%;
-  border: none;
-  background: transparent;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-small);
-  touch-action: manipulation;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .date-input.past-due {
-  color: var(--color-danger);
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.date-input.past-due:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
 } 

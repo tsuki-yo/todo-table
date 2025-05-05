@@ -1,37 +1,50 @@
 .task-table-container {
-  overflow-x: auto;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .task-table-title {
-  color: var(--color-text-primary);
-  margin-bottom: 20px;
-  font-size: var(--font-size-large);
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
 }
 
 .task-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 300px;
+  margin-top: 1rem;
 }
 
-.task-table th {
+.table-header {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.table-cell {
+  padding: 0.75rem;
   text-align: left;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.task-table td.text-center {
+.text-center {
   text-align: center;
 }
 
 .task-input {
   width: 100%;
-  border: none;
-  background: transparent;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-small);
-  touch-action: manipulation;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
 }
 
-.task-input::placeholder {
-  color: var(--color-text-secondary);
+.task-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 } 
