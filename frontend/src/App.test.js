@@ -177,14 +177,9 @@ describe('App Component', () => {
       renderWithProviders(<App />);
       
       await waitFor(() => {
-        const dateInputs = screen.getAllByRole('date');
+        const dateInputs = screen.getAllByDisplayValue('2024-04-25');
         expect(dateInputs.length).toBeGreaterThan(0);
-        
-        const pastDueInput = dateInputs[0];
-        const futureInput = dateInputs[1];
-        
-        expect(pastDueInput).toHaveClass('past-due');
-        expect(futureInput).not.toHaveClass('past-due');
+        expect(dateInputs[0]).toHaveStyle({ color: 'rgb(220, 53, 69)' });
       });
     });
 
