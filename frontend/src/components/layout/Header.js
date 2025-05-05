@@ -14,16 +14,13 @@ const Header = () => {
   };
 
   return (
-    <div className="card header-container">
+    <div className="header-container">
       <div className="header-content">
         <h2 className="header-title">
           Welcome, {auth.user?.profile.name || auth.user?.profile.email}
         </h2>
         <div className="header-button-container">
-          <button
-            onClick={signOutRedirect}
-            className="button button-danger"
-          >
+          <button onClick={signOutRedirect}>
             Sign out
           </button>
         </div>
