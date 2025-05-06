@@ -49,8 +49,8 @@ resource "aws_eks_node_group" "general" {
     aws_subnet.private_zone2.id
   ]
 
-  capacity_type  = "ON_DEMAND"
-  instance_types = ["t3.medium"]
+  capacity_type  = "SPOT"
+  instance_types = ["t3.medium", "t3a.medium", "t3.small", "t3a.small"]  # Multiple instance types for better spot availability
 
   scaling_config {
     desired_size = 1
