@@ -31,8 +31,9 @@ const Header = () => {
         <div className="user-info">
           {user && (
             <>
-              <span className="welcome-message">
-                Welcome, {isGuestUser ? user.name : user.profile?.name || 'User'}!
+              <span className="user-labels">
+                <span className="welcome-message">Welcome,</span>
+                <span className="user-name">{isGuestUser ? user.name : user.profile?.name || 'User'}!</span>
               </span>
               <button onClick={handleLogout} className="button button-danger">
                 Logout
