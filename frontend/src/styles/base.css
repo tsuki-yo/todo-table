@@ -31,6 +31,7 @@
   font-size: clamp(0.875rem, 3vw, 1rem);
   white-space: nowrap;
   touch-action: manipulation;
+  border: none;
 }
 
 .button-danger:hover {

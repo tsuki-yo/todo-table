@@ -61,4 +61,10 @@
 
 .task-input:focus {
   outline: none;
+}
+
+@media (max-width: 600px) {
+  .table-header th:last-child {
+    width: 90px;
+  }
 } 
