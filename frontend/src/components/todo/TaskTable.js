@@ -80,7 +80,6 @@ const TaskTable = () => {
                   onBlur={() => handleBlur(task, index)}
                   className="task-input"
                   placeholder="Enter task..."
-                  disabled={isGuestUser}
                 />
               </td>
               <td className="table-cell">
@@ -89,7 +88,6 @@ const TaskTable = () => {
                   onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
                   onBlur={() => handleBlur(task, index)}
                   isPastDue={isPastDue(task?.dueDate)}
-                  disabled={isGuestUser}
                 />
               </td>
             </tr>
