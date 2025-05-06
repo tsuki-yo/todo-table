@@ -64,7 +64,10 @@
 }
 
 @media (max-width: 600px) {
+  .table-header th:first-child {
+    width: 30px;
+  }
   .table-header th:last-child {
-    width: 100px;
+    width: 110px;
   }
 } 
