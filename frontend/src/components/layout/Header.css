@@ -44,8 +44,10 @@
 
 .user-info {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 1rem;
+  flex-wrap: nowrap;
 }
 
 .user-labels {
@@ -89,9 +91,7 @@
     font-weight: 500;
   }
   .user-info {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0;
+    flex-wrap: nowrap;
   }
   .user-labels {
     flex-direction: column;
