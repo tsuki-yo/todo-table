@@ -25,7 +25,7 @@ const Header = () => {
   const user = isGuestUser ? guestUser : auth.user;
 
   return (
-    <header className="header">
+    <div className="card header-container">
       <div className="header-content">
         <h1 className="app-title">Todo Table</h1>
         <div className="user-info">
@@ -34,14 +34,14 @@ const Header = () => {
               <span className="welcome-message">
                 Welcome, {isGuestUser ? user.name : user.profile?.name || 'User'}!
               </span>
-              <button onClick={handleLogout} className="logout-button">
+              <button onClick={handleLogout} className="button button-danger">
                 Logout
               </button>
             </>
           )}
         </div>
       </div>
-    </header>
+    </div>
   );
 };
 
