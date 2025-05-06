@@ -47,3 +47,19 @@
   background-color: var(--color-background);
   font-family: var(--font-family);
 }
+
+.app-footer {
+  text-align: center;
+  padding: 1rem 0;
+  font-size: 0.95rem;
+  color: #888;
+  background: none;
+}
+.app-footer a {
+  margin: 0 0.5rem;
+  color: #007bff;
+  text-decoration: none;
+}
+.app-footer a:hover {
+  text-decoration: underline;
+}

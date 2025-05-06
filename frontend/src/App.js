@@ -30,6 +30,15 @@ function App() {
       <main className="main-content">
         <TaskTable />
       </main>
+      <footer className="app-footer">
+        <span>© 2025 Natsuki Miyadi</span>
+        <a href="https://github.com/tsuki-yo/todo-table" target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/natsuki-miyadi-787b27348/" target="_blank" rel="noopener noreferrer">
+          LinkedIn
+        </a>
+      </footer>
     </div>
   );
 }
