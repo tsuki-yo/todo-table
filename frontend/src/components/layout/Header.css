@@ -18,8 +18,8 @@
 
 .app-title {
   margin: 0;
-  color: #333;
-  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-large);
   flex: 1 1 auto;
   word-break: break-word;
 }
@@ -37,8 +37,8 @@
 }
 
 .welcome-message {
-  color: #666;
-  font-size: clamp(0.875rem, 3vw, 1rem);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
 }
 
 .header-button-container {

@@ -1,7 +1,7 @@
 /* Common styles */
 .card {
   background: white;
-  padding: clamp(1rem, 4vw, 2rem);
+  padding: clamp(0.75rem, 3vw, 1.5rem);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
