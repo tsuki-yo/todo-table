@@ -29,17 +29,13 @@ const Header = () => {
       <div className="header-content">
         <h1 className="app-title">Todo Table</h1>
         <div className="user-info">
-          {user && (
-            <>
-              <span className="user-labels">
-                <span className="welcome-message">Welcome,</span>
-                <span className="user-name">{isGuestUser ? user.name : user.profile?.name || 'User'}!</span>
-              </span>
-              <button onClick={handleLogout} className="button button-danger">
-                Logout
-              </button>
-            </>
-          )}
+          <span className="user-labels">
+            <span className="welcome-message">Welcome,</span>
+            <span className="user-name">{isGuestUser ? user.name : user.profile?.name || 'User'}!</span>
+          </span>
+          <button onClick={handleLogout} className="button button-danger">
+            Logout
+          </button>
         </div>
       </div>
     </div>
