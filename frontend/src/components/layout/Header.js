@@ -34,7 +34,6 @@ const Header = () => {
               <span className="welcome-message">
                 Welcome, {isGuestUser ? user.name : user.profile?.name || 'User'}!
               </span>
-              {isGuestUser && <span className="guest-badge">(Guest)</span>}
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
