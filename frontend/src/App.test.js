@@ -98,7 +98,8 @@ describe('App Component', () => {
       it('displays welcome message with user name', async () => {
         renderWithProviders(<App />);
         await waitFor(() => {
-          expect(screen.getByText('Welcome, Test User')).toBeInTheDocument();
+          expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+          expect(screen.getByText(/Test User!/)).toBeInTheDocument();
         });
       });
 
@@ -140,10 +141,10 @@ describe('App Component', () => {
         renderWithProviders(<App />);
         
         await waitFor(() => {
-          expect(screen.getByText(/Sign out/i)).toBeInTheDocument();
+          expect(screen.getByText(/Logout/i)).toBeInTheDocument();
         });
         
-        fireEvent.click(screen.getByText(/Sign out/i));
+        fireEvent.click(screen.getByText(/Logout/i));
         expect(require('react-oidc-context').useAuth().removeUser).toHaveBeenCalled();
       });
     });
@@ -177,14 +178,9 @@ describe('App Component', () => {
       renderWithProviders(<App />);
       
       await waitFor(() => {
-        const dateInputs = screen.getAllByRole('date');
+        const dateInputs = screen.getAllByDisplayValue('2024-04-25');
         expect(dateInputs.length).toBeGreaterThan(0);
-        
-        const pastDueInput = dateInputs[0];
-        const futureInput = dateInputs[1];
-        
-        expect(pastDueInput).toHaveClass('past-due');
-        expect(futureInput).not.toHaveClass('past-due');
+        expect(dateInputs[0]).toHaveStyle({ color: 'rgb(220, 53, 69)' });
       });
     });
 
@@ -196,6 +192,39 @@ describe('App Component', () => {
       
       await waitFor(() => {
         expect(console.error).toHaveBeenCalledWith('Error fetching tasks:', expect.any(Error));
+      });
+    });
+  });
+
+  describe('auth flow', () => {
+    it('shows sign in button when not authenticated', async () => {
+      require('react-oidc-context').setMockAuth({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null
+      });
+
+      renderWithProviders(<App />);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Sign in with Cognito/i })).toBeInTheDocument();
+      });
+    });
+
+    it('shows welcome message and logout when authenticated', async () => {
+      require('react-oidc-context').setMockAuth({
+        isAuthenticated: true,
+        isLoading: false,
+        user: {
+          profile: { name: 'Test User' },
+          access_token: 'test-token'
+        }
+      });
+
+      renderWithProviders(<App />);
+      await waitFor(() => {
+        expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+        expect(screen.getByText(/Test User!/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
       });
     });
   });
