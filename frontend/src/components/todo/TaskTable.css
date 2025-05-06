@@ -65,6 +65,6 @@
 
 @media (max-width: 600px) {
   .table-header th:last-child {
-    width: 90px;
+    width: 100px;
   }
 } 

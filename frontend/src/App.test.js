@@ -195,4 +195,37 @@ describe('App Component', () => {
       });
     });
   });
+
+  describe('auth flow', () => {
+    it('shows sign in button when not authenticated', async () => {
+      require('react-oidc-context').setMockAuth({
+        isAuthenticated: false,
+        isLoading: false,
+        user: null
+      });
+
+      renderWithProviders(<App />);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Sign in with Cognito/i })).toBeInTheDocument();
+      });
+    });
+
+    it('shows welcome message and logout when authenticated', async () => {
+      require('react-oidc-context').setMockAuth({
+        isAuthenticated: true,
+        isLoading: false,
+        user: {
+          profile: { name: 'Test User' },
+          access_token: 'test-token'
+        }
+      });
+
+      renderWithProviders(<App />);
+      await waitFor(() => {
+        expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+        expect(screen.getByText(/Test User!/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
+      });
+    });
+  });
 });
