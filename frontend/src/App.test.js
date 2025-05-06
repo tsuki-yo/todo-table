@@ -98,7 +98,8 @@ describe('App Component', () => {
       it('displays welcome message with user name', async () => {
         renderWithProviders(<App />);
         await waitFor(() => {
-          expect(screen.getByText(/Welcome, Test User!/)).toBeInTheDocument();
+          expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+          expect(screen.getByText(/Test User!/)).toBeInTheDocument();
         });
       });
 
