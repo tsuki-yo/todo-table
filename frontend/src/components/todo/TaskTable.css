@@ -8,18 +8,9 @@
   margin-bottom: 20px;
 }
 
-.task-table-title {
-  margin: 0;
-  color: #333;
-  font-size: clamp(1.2rem, 4vw, 1.5rem);
-  flex: 1 1 auto;
-  word-break: break-word;
-}
-
 .task-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
   table-layout: fixed;
 }
 

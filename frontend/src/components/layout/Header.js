@@ -25,7 +25,7 @@ const Header = () => {
   const user = isGuestUser ? guestUser : auth.user;
 
   return (
-    <div className="card header-container">
+    <div className="header-container">
       <div className="header-content">
         <h1 className="app-title">Todo Table</h1>
         <div className="user-info">

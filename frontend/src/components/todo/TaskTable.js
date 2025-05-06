@@ -60,7 +60,6 @@ const TaskTable = () => {
 
   return (
     <div className="task-table-container">
-      <h2 className="task-table-title">Todo List</h2>
       <table className="task-table">
         <thead>
           <tr className="table-header">
