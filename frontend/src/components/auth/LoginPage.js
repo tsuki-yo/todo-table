@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from "react-oidc-context";
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -24,11 +24,6 @@ const LoginPage = () => {
   const handleCognitoLogin = () => {
     auth.signinRedirect();
   };
-
-  // If authenticated via OIDC or guest, redirect to dashboard
-  if (auth.isAuthenticated || localStorage.getItem('authType') === 'guest') {
-    return <Navigate to="/" />;
-  }
 
   return (
     <div className="login-container">

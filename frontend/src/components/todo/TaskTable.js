@@ -12,6 +12,7 @@ const TaskTable = () => {
   const [tasks, setTasks] = useState(
     Array(TOTAL_ROWS).fill({ id: null, task: "", dueDate: "" })
   );
+  const isGuestUser = localStorage.getItem('authType') === 'guest';
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -40,6 +41,8 @@ const TaskTable = () => {
 
   const handleBlur = (task, index) => {
     if (!task.task) return;
+    if (isGuestUser) return; // Don't save for guest users
+    
     axios
       .put(`${API_URL}/${index}`, task, {
         headers: { Authorization: `Bearer ${auth.user?.access_token}` },
@@ -78,6 +81,7 @@ const TaskTable = () => {
                   onBlur={() => handleBlur(task, index)}
                   className="task-input"
                   placeholder="Enter task..."
+                  disabled={isGuestUser}
                 />
               </td>
               <td className="table-cell">
@@ -86,6 +90,7 @@ const TaskTable = () => {
                   onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
                   onBlur={() => handleBlur(task, index)}
                   isPastDue={isPastDue(task?.dueDate)}
+                  disabled={isGuestUser}
                 />
               </td>
             </tr>
