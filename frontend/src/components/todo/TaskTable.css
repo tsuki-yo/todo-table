@@ -8,23 +8,14 @@
   margin-bottom: 20px;
 }
 
-.task-table-title {
-  margin: 0;
-  color: #333;
-  font-size: clamp(1.2rem, 4vw, 1.5rem);
-  flex: 1 1 auto;
-  word-break: break-word;
-}
-
 .task-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
   table-layout: fixed;
 }
 
 .table-header {
-  background: #f8f9fa;
+  background: #e8f5e9;
 }
 
 .table-header th {
@@ -32,6 +23,18 @@
   padding: clamp(8px, 2vw, 12px);
   color: #495057;
   font-size: clamp(0.875rem, 3vw, 1rem);
+}
+
+.table-header th:first-child {
+  width: 50px;
+}
+
+.table-header th:nth-child(2) {
+  width: auto;
+}
+
+.table-header th:last-child {
+  width: 150px;
 }
 
 .table-cell {
@@ -58,4 +61,13 @@
 
 .task-input:focus {
   outline: none;
+}
+
+@media (max-width: 600px) {
+  .table-header th:first-child {
+    width: 20px;
+  }
+  .table-header th:last-child {
+    width: 105px;
+  }
 } 

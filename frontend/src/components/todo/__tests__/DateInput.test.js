@@ -8,14 +8,14 @@ describe('DateInput', () => {
     expect(screen.getByTestId('date-input')).toBeInTheDocument();
   });
 
-  it('applies past-due class when isPastDue is true', () => {
+  it('applies red color when isPastDue is true', () => {
     render(<DateInput isPastDue={true} />);
-    expect(screen.getByTestId('date-input')).toHaveClass('past-due');
+    expect(screen.getByTestId('date-input')).toHaveStyle({ color: '#dc3545' });
   });
 
-  it('does not apply past-due class when isPastDue is false', () => {
+  it('applies inherit color when isPastDue is false', () => {
     render(<DateInput isPastDue={false} />);
-    expect(screen.getByTestId('date-input')).not.toHaveClass('past-due');
+    expect(screen.getByTestId('date-input')).toHaveStyle({ color: 'inherit' });
   });
 
   it('calls onChange when value changes', () => {

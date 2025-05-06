@@ -12,6 +12,7 @@ const TaskTable = () => {
   const [tasks, setTasks] = useState(
     Array(TOTAL_ROWS).fill({ id: null, task: "", dueDate: "" })
   );
+  const isGuestUser = localStorage.getItem('authType') === 'guest';
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -40,6 +41,8 @@ const TaskTable = () => {
 
   const handleBlur = (task, index) => {
     if (!task.task) return;
+    if (isGuestUser) return; // Don't save for guest users
+    
     axios
       .put(`${API_URL}/${index}`, task, {
         headers: { Authorization: `Bearer ${auth.user?.access_token}` },
@@ -57,7 +60,6 @@ const TaskTable = () => {
 
   return (
     <div className="task-table-container">
-      <h2 className="task-table-title">Todo List</h2>
       <table className="task-table">
         <thead>
           <tr className="table-header">
