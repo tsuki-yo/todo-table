@@ -31,9 +31,17 @@ async function verifyToken(req, res, next) {
   const token = authHeader.split(" ")[1];
 
   try {
+    // Check if it's a guest token (32-character hex string)
+    if (/^[0-9a-f]{32}$/.test(token)) {
+      req.user = {
+        sub: `guest_${token}`,
+        isGuest: true
+      };
+      return next();
+    }
+    
     // Verify the token with Cognito
     const payload = await verifier.verify(token);
-    // Attach token payload (user information) to the request object
     req.user = payload;
     next();
   } catch (err) {
@@ -68,11 +76,11 @@ app.get("/tasks", async (req, res) => {
 app.put("/tasks/:id", async (req, res) => {
   const { id } = req.params;
   const { task, dueDate } = req.body;
-  const userId = req.user.sub; // Extracted from token payload
+  const userId = req.user.sub;
 
   const params = {
     TableName: TABLE_NAME,
-    Key: { userId, id }, // Composite key
+    Key: { userId, id },
     UpdateExpression: "set #t = :t, dueDate = :d",
     ExpressionAttributeNames: { "#t": "task" },
     ExpressionAttributeValues: {
@@ -91,16 +99,14 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
-
 // POST endpoint: add a new task
 app.post("/tasks", async (req, res) => {
   const { id, task, dueDate } = req.body;
-  // Extract the user's unique identifier from the token
   const userId = req.user.sub;
 
   const params = {
     TableName: TABLE_NAME,
-    Item: { userId, id, task, dueDate }, // Store userId with the task
+    Item: { userId, id, task, dueDate },
   };
 
   try {
@@ -111,7 +117,6 @@ app.post("/tasks", async (req, res) => {
     res.status(500).json({ error: "Could not add task" });
   }
 });
-
 
 // Start server
 const PORT = process.env.PORT || 3002;
