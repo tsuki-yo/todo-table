@@ -1,7 +1,7 @@
 /* Common styles */
 .card {
   background: white;
-  padding: clamp(1rem, 4vw, 2rem);
+  padding: clamp(0.75rem, 3vw, 1.5rem);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -31,6 +31,7 @@
   font-size: clamp(0.875rem, 3vw, 1rem);
   white-space: nowrap;
   touch-action: manipulation;
+  border: none;
 }
 
 .button-danger:hover {
