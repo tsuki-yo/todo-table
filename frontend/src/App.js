@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import './styles/base.css';
 import './App.css';
 import LoginPage from './components/auth/LoginPage';
 import TaskTable from './components/todo/TaskTable';
