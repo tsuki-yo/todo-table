@@ -29,8 +29,9 @@
   width: 50px;
 }
 
+/* Make the 'Done' column narrower */
 .table-header th:nth-child(2) {
-  width: auto;
+  width: 40px;
 }
 
 .table-header th:last-child {
@@ -66,6 +67,9 @@
 @media (max-width: 600px) {
   .table-header th:first-child {
     width: 20px;
+  }
+  .table-header th:nth-child(2) {
+    width: 28px;
   }
   .table-header th:last-child {
     width: 105px;

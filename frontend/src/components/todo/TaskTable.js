@@ -64,6 +64,7 @@ const TaskTable = () => {
         <thead>
           <tr className="table-header">
             <th>#</th>
+            <th>Done</th>
             <th>Item Name</th>
             <th>Due Date</th>
           </tr>
@@ -72,6 +73,16 @@ const TaskTable = () => {
           {tasks.map((task, index) => (
             <tr key={index}>
               <td className="table-cell text-center">{index + 1}</td>
+              <td className="table-cell text-center">
+                <input
+                  type="checkbox"
+                  checked={!!task.completed}
+                  onChange={e => {
+                    handleEdit(index, "completed", e.target.checked);
+                    handleBlur({ ...task, completed: e.target.checked }, index);
+                  }}
+                />
+              </td>
               <td className="table-cell">
                 <input
                   type="text"
