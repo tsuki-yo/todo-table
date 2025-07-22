@@ -50,12 +50,12 @@ resource "aws_eks_node_group" "general" {
   ]
 
   capacity_type  = "SPOT"
-  instance_types = ["t3.medium", "t3a.medium", "t3.small", "t3a.small"]  # Multiple instance types for better spot availability
+  instance_types = ["t3.medium", "t3a.medium"]  # Multiple instance types for better spot availability
 
   scaling_config {
-    desired_size = 1
-    max_size     = 10
-    min_size     = 0
+    desired_size = 2
+    max_size     = 3
+    min_size     = 2
   }
 
   update_config {
