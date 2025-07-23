@@ -64,7 +64,7 @@ const TaskTable = () => {
         <thead>
           <tr className="table-header">
             <th>#</th>
-            <th>Done</th>
+            <th>✓</th>
             <th>Item Name</th>
             <th>Due Date</th>
           </tr>
