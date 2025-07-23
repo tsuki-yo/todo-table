@@ -32,11 +32,11 @@ resource "kubernetes_secret" "sealed_secrets_tls" {
 resource "helm_release" "sealed_secrets" {
   name = "sealed-secrets"
 
-  repository       = "https://charts.bitnami.com/bitnami"
+  repository       = "https://bitnami-labs.github.io/sealed-secrets"
   chart            = "sealed-secrets"
   namespace        = "kube-system"
   create_namespace = true
-  version          = "1.2.11"
+  version          = "2.17.3"
   values = [file("${path.module}/values/sealed-secrets-tls.yaml")]
   depends_on = [kubernetes_secret.sealed_secrets_tls]
 }
