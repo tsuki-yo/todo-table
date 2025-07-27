@@ -37,8 +37,8 @@ jobs:
           cd frontend
           npm run test:ci
 
-  # 1) Rebase deploy onto dev
-  rebase-deploy:
+  # 1) Reset deploy to match dev (safer than rebase)
+  reset-deploy:
     if: github.actor == 'tsuki-yo'
     needs: [test]
     runs-on: ubuntu-latest
@@ -48,18 +48,17 @@ jobs:
         with:
           ref: dev
 
-      - name: Fetch and rebase deploy
+      - name: Reset deploy branch to dev
         run: |
-          git fetch origin deploy:deploy
-          git checkout deploy
-          git rebase dev
+          git fetch origin deploy:deploy || echo "Deploy branch may not exist yet"
+          git checkout -B deploy
           git push origin deploy --force
 
   # 2) Bump version in a single job, store it as output
   bump-version:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
-    needs: [rebase-deploy]
+    needs: [reset-deploy]
     outputs:
       new_tag: ${{ steps.increment-git-tag.outputs.new_tag }}
     steps:
