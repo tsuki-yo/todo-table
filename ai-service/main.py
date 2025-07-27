@@ -105,11 +105,11 @@ def extract_japanese_date(text: str, doc) -> str:
     
     # Custom Japanese date patterns
     japanese_date_patterns = {
-        "今日": datetime.now().strftime("%Y/%m/%d"),
-        "明日": (datetime.now() + timedelta(days=1)).strftime("%Y/%m/%d"),
-        "明後日": (datetime.now() + timedelta(days=2)).strftime("%Y/%m/%d"),
-        "来週": (datetime.now() + timedelta(weeks=1)).strftime("%Y/%m/%d"),
-        "来月": (datetime.now() + timedelta(days=30)).strftime("%Y/%m/%d"),
+        "今日": datetime.now().strftime("%Y-%m-%d"),
+        "明日": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+        "明後日": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
+        "来週": (datetime.now() + timedelta(weeks=1)).strftime("%Y-%m-%d"),
+        "来月": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
     }
     
     # Check custom patterns first
@@ -124,7 +124,7 @@ def extract_japanese_date(text: str, doc) -> str:
                 # Use dateparser with Japanese language support
                 parsed_date = dateparser.parse(ent.text, languages=['ja'])
                 if parsed_date:
-                    return parsed_date.strftime("%Y/%m/%d")
+                    return parsed_date.strftime("%Y-%m-%d")
             except:
                 continue
     
