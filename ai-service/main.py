@@ -144,7 +144,9 @@ def extract_date(text: str, doc) -> str:
             'PREFER_DAY_OF_MONTH': 'current',
             'PREFER_DATES_FROM': 'future',
             'RELATIVE_BASE': now_jst,
-            'TIMEZONE': 'Asia/Tokyo'
+            'TIMEZONE': 'Asia/Tokyo',
+            'FUZZY_WITH_TOKENS': True,
+            'STRICT_PARSING': False
         })
         
         if parsed_date:
@@ -163,7 +165,9 @@ def extract_date(text: str, doc) -> str:
             try:
                 parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
                     'TIMEZONE': 'Asia/Tokyo',
-                    'RELATIVE_BASE': now_jst
+                    'RELATIVE_BASE': now_jst,
+                    'FUZZY_WITH_TOKENS': True,
+                    'STRICT_PARSING': False
                 })
                 if parsed_date:
                     if parsed_date.tzinfo is None:
@@ -184,8 +188,14 @@ def extract_clean_task(text: str, extracted_date: str, doc) -> str:
     # Remove date patterns
     task_text = text
     
-    # Remove Japanese date words
-    date_words = ["今日", "明日", "明後日", "来週", "来月"]
+    # Remove Japanese and English date words
+    date_words = [
+        # Japanese
+        "今日", "明日", "明後日", "来週", "来月",
+        # English
+        "today", "tomorrow", "tonight", "next week", "next month", 
+        "this week", "this month", "yesterday"
+    ]
     for date_word in date_words:
         task_text = task_text.replace(date_word, "")
     

@@ -10,8 +10,12 @@ const LoginPage = () => {
 
   const handleGuestLogin = () => {
     setIsLoading(true);
+    // Generate 32-character hex token for guest
+    const guestToken = Array.from({length: 32}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    
     // Set guest user in local storage
     localStorage.setItem('authType', 'guest');
+    localStorage.setItem('guestToken', guestToken);
     localStorage.setItem('guestUser', JSON.stringify({
       id: 'guest-' + Math.random().toString(36).substr(2, 9),
       name: 'Guest User',
