@@ -174,22 +174,48 @@ const TaskTable = () => {
                 />
               </td>
               <td className="table-cell">
-                <input
-                  type="text"
-                  value={task?.task || ""}
-                  onChange={(e) => handleEdit(index, "task", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  className="task-input"
-                  placeholder="Enter task..."
-                />
+                <div className="input-with-clear">
+                  <input
+                    type="text"
+                    value={task?.task || ""}
+                    onChange={(e) => handleEdit(index, "task", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    className="task-input"
+                    placeholder="Enter task..."
+                  />
+                  {task?.task && (
+                    <button
+                      className="clear-button"
+                      onClick={() => {
+                        handleEdit(index, "task", "");
+                        handleBlur({ ...task, task: "" }, index);
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="table-cell">
-                <DateInput
-                  value={task?.dueDate || ""}
-                  onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  isPastDue={isPastDue(task?.dueDate)}
-                />
+                <div className="input-with-clear">
+                  <DateInput
+                    value={task?.dueDate || ""}
+                    onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    isPastDue={isPastDue(task?.dueDate)}
+                  />
+                  {task?.dueDate && (
+                    <button
+                      className="clear-button"
+                      onClick={() => {
+                        handleEdit(index, "dueDate", "");
+                        handleBlur({ ...task, dueDate: "" }, index);
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
