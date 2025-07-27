@@ -72,7 +72,7 @@ async def analyze_text(input_data: TextInput):
         spacy_entities = [(ent.text, ent.label_) for ent in doc.ents]
         
         # Extract date
-        due_date = extract_japanese_date(text, doc)
+        due_date = extract_date(text, doc)
         
         # Extract and clean task
         clean_task = extract_clean_task(text, due_date, doc)
@@ -100,35 +100,34 @@ async def analyze_text(input_data: TextInput):
             note=f"Processing error: {str(error)}"
         )
 
-def extract_japanese_date(text: str, doc) -> str:
-    """Extract and convert Japanese dates"""
+def extract_date(text: str, doc) -> str:
+    """Extract and convert dates using dateparser with Japanese and English support"""
     
-    # Custom Japanese date patterns
-    japanese_date_patterns = {
-        "今日": datetime.now().strftime("%Y-%m-%d"),
-        "明日": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
-        "明後日": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
-        "来週": (datetime.now() + timedelta(weeks=1)).strftime("%Y-%m-%d"),
-        "来月": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
-    }
+    # Use dateparser with Japanese and English support
+    try:
+        parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
+            'PREFER_DAY_OF_MONTH': 'current',
+            'PREFER_DATES_FROM': 'future',
+            'RELATIVE_BASE': datetime.now()
+        })
+        
+        if parsed_date:
+            return parsed_date.strftime("%Y-%m-%d")
+    except:
+        pass
     
-    # Check custom patterns first
-    for jp_date, iso_date in japanese_date_patterns.items():
-        if jp_date in text:
-            return iso_date
-    
-    # Check spaCy entities for dates
+    # Check spaCy entities for dates as fallback
     for ent in doc.ents:
         if ent.label_ == "DATE":
             try:
-                # Use dateparser with Japanese language support
-                parsed_date = dateparser.parse(ent.text, languages=['ja'])
+                parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'])
                 if parsed_date:
                     return parsed_date.strftime("%Y-%m-%d")
             except:
                 continue
     
     return ""
+
 
 
 def extract_clean_task(text: str, extracted_date: str, doc) -> str:
