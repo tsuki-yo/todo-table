@@ -12,6 +12,7 @@ const TaskTable = () => {
   const [tasks, setTasks] = useState(
     Array(TOTAL_ROWS).fill({ id: null, task: "", dueDate: "" })
   );
+  const [newTaskInput, setNewTaskInput] = useState("");
   const isGuestUser = localStorage.getItem('authType') === 'guest';
 
   useEffect(() => {
@@ -60,6 +61,15 @@ const TaskTable = () => {
 
   return (
     <div className="task-table-container">
+      <div className="new-task-input-container">
+        <input
+          type="text"
+          value={newTaskInput}
+          onChange={(e) => setNewTaskInput(e.target.value)}
+          placeholder="Add a new task..."
+          className="new-task-input"
+        />
+      </div>
       <table className="task-table">
         <thead>
           <tr className="table-header">
