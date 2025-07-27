@@ -103,6 +103,41 @@
   outline: none;
 }
 
+.input-with-clear {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clear-button {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color 0.2s ease;
+  z-index: 1;
+}
+
+.clear-button:hover {
+  background: #c82333;
+}
+
+.clear-button:focus {
+  outline: none;
+}
+
 @media (max-width: 600px) {
   .table-header th:first-child {
     width: 20px;
