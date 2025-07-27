@@ -114,7 +114,7 @@ app.post("/tasks/process", async (req, res) => {
     let processedTask;
     try {
       console.log("🔍 Calling AI service with input:", input);
-      const aiResponse = await axios.post('http://localhost:3003/analyze', {
+      const aiResponse = await axios.post('http://ai-service:3003/analyze', {
         text: input
       }, {
         timeout: 5000
