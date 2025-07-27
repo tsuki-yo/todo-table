@@ -147,16 +147,12 @@ def extract_date(text: str, doc) -> str:
     now_jst = datetime.now(jst)
     print(f"Date extraction for: '{text}', now_jst: {now_jst}")
     
-    # Use dateparser with Japanese and English support
+    # Try dateparser with simple settings
     try:
         parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
-            'PREFER_DAY_OF_MONTH': 'current',
             'PREFER_DATES_FROM': 'future',
             'RELATIVE_BASE': now_jst,
-            'TIMEZONE': 'Asia/Tokyo',
-            'FUZZY_WITH_TOKENS': True,
-            'STRICT_PARSING': False,
-            'RETURN_AS_TIMEZONE_AWARE': True
+            'TIMEZONE': 'Asia/Tokyo'
         })
         
         print(f"Dateparser result: {parsed_date}")
@@ -173,26 +169,50 @@ def extract_date(text: str, doc) -> str:
         print(f"Dateparser error: {e}")
     
     # Check spaCy entities for dates as fallback
+    print(f"spaCy entities found: {[(ent.text, ent.label_) for ent in doc.ents]}")
     for ent in doc.ents:
         if ent.label_ == "DATE":
             try:
                 parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
                     'RELATIVE_BASE': now_jst,
-                    'TIMEZONE': 'Asia/Tokyo',
-                    'FUZZY_WITH_TOKENS': True,
-                    'STRICT_PARSING': False,
-                    'RETURN_AS_TIMEZONE_AWARE': True
+                    'TIMEZONE': 'Asia/Tokyo'
                 })
+                print(f"spaCy entity '{ent.text}' parsed as: {parsed_date}")
                 if parsed_date:
-                    # Convert to JST and format as date only
                     if parsed_date.tzinfo is None:
                         parsed_date = jst.localize(parsed_date)
                     else:
                         parsed_date = parsed_date.astimezone(jst)
-                    return parsed_date.strftime("%Y-%m-%d")
-            except:
+                    result = parsed_date.strftime("%Y-%m-%d")
+                    print(f"spaCy entity formatted: {result}")
+                    return result
+            except Exception as e:
+                print(f"spaCy entity parsing error: {e}")
                 continue
     
+    # Japanese date words that spaCy doesn't tag as DATE entities
+    japanese_date_words = ['今日', '明日', '明後日', '昨日', '来週', '来月']
+    for token in doc:
+        if token.text in japanese_date_words:
+            try:
+                parsed_date = dateparser.parse(token.text, languages=['ja'], settings={
+                    'RELATIVE_BASE': now_jst,
+                    'TIMEZONE': 'Asia/Tokyo'
+                })
+                print(f"Japanese token '{token.text}' parsed as: {parsed_date}")
+                if parsed_date:
+                    if parsed_date.tzinfo is None:
+                        parsed_date = jst.localize(parsed_date)
+                    else:
+                        parsed_date = parsed_date.astimezone(jst)
+                    result = parsed_date.strftime("%Y-%m-%d")
+                    print(f"Japanese token formatted: {result}")
+                    return result
+            except Exception as e:
+                print(f"Japanese token parsing error: {e}")
+                continue
+    
+    print("No date found")
     return ""
 
 
