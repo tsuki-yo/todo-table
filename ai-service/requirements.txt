@@ -4,3 +4,4 @@ pydantic>=2.0.0
 python-dotenv>=1.0.0
 dateparser>=1.2.0
 spacy>=3.8.0
+pytz>=2024.1

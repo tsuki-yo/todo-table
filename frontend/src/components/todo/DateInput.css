@@ -60,4 +60,14 @@
 
 .date-input::-moz-datetime-edit-year-field {
   color: inherit;
+}
+
+/* Force yyyy-mm-dd format display */
+.date-input {
+  text-align: left;
+}
+
+/* For browsers that support it, ensure ISO format */
+.date-input[type="date"] {
+  appearance: auto;
 } 

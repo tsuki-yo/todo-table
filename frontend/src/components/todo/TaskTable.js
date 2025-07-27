@@ -53,7 +53,50 @@ const TaskTable = () => {
 
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
-    if (isGuestUser) return; // Don't save for guest users
+
+    if (isGuestUser) {
+      // For guest users, use backend AI processing but don't save to server
+      try {
+        const guestToken = localStorage.getItem('guestToken');
+        const response = await axios.post(`${API_URL}/process`, 
+          { input: newTaskInput },
+          {
+            headers: { Authorization: `Bearer ${guestToken}` },
+          }
+        );
+        
+        const processedTask = response.data;
+        const firstEmptyIndex = tasks.findIndex(task => !task.task);
+        if (firstEmptyIndex !== -1) {
+          setTasks((prevTasks) => {
+            const updatedTasks = [...prevTasks];
+            updatedTasks[firstEmptyIndex] = {
+              id: firstEmptyIndex.toString(),
+              task: processedTask.task,
+              dueDate: processedTask.dueDate
+            };
+            return updatedTasks;
+          });
+        }
+      } catch (aiError) {
+        console.log("AI service unavailable for guest, using fallback:", aiError.message);
+        // Fallback: add raw text without processing
+        const firstEmptyIndex = tasks.findIndex(task => !task.task);
+        if (firstEmptyIndex !== -1) {
+          setTasks((prevTasks) => {
+            const updatedTasks = [...prevTasks];
+            updatedTasks[firstEmptyIndex] = {
+              id: firstEmptyIndex.toString(),
+              task: newTaskInput.trim(),
+              dueDate: ""
+            };
+            return updatedTasks;
+          });
+        }
+      }
+      setNewTaskInput("");
+      return;
+    }
 
     try {
       const response = await axios.post(`${API_URL}/process`, 

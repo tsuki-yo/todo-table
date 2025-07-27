@@ -6,6 +6,7 @@ import re
 import os
 from datetime import datetime, timedelta
 import dateparser
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,13 +22,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load spaCy Japanese model
+# Load spaCy models
+nlp_ja = None
+nlp_en = None
+
 try:
-    nlp = spacy.load("ja_core_news_sm")
+    nlp_ja = spacy.load("ja_core_news_sm")
     print("✅ Japanese spaCy model loaded successfully!")
 except OSError:
     print("❌ Japanese spaCy model not found. Run: python -m spacy download ja_core_news_sm")
-    nlp = None
+
+try:
+    nlp_en = spacy.load("en_core_web_sm")
+    print("✅ English spaCy model loaded successfully!")
+except OSError:
+    print("❌ English spaCy model not found. Run: python -m spacy download en_core_web_sm")
+
+# Use Japanese model as primary, fallback to English
+nlp = nlp_ja or nlp_en
 
 class TextInput(BaseModel):
     text: str
@@ -65,8 +77,27 @@ async def analyze_text(input_data: TextInput):
         )
     
     try:
-        # Process with spaCy
-        doc = nlp(text)
+        # Detect if text contains Japanese characters
+        has_japanese = bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', text))
+        
+        # Choose appropriate spaCy model
+        if has_japanese and nlp_ja:
+            doc = nlp_ja(text)
+        elif nlp_en:
+            doc = nlp_en(text)
+        elif nlp:
+            doc = nlp(text)
+        else:
+            # No spaCy models available
+            return AnalysisResult(
+                task=text,
+                dueDate="",
+                priority="medium",
+                entities=[],
+                sentiment=[],
+                originalText=text,
+                note="spaCy models not available, using basic processing"
+            )
         
         # Extract entities from spaCy
         spacy_entities = [(ent.text, ent.label_) for ent in doc.ents]
@@ -103,15 +134,25 @@ async def analyze_text(input_data: TextInput):
 def extract_date(text: str, doc) -> str:
     """Extract and convert dates using dateparser with Japanese and English support"""
     
+    # Set timezone to JST (Japan Standard Time) for consistent date parsing
+    jst = pytz.timezone('Asia/Tokyo')
+    now_jst = datetime.now(jst)
+    
     # Use dateparser with Japanese and English support
     try:
         parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
             'PREFER_DAY_OF_MONTH': 'current',
             'PREFER_DATES_FROM': 'future',
-            'RELATIVE_BASE': datetime.now()
+            'RELATIVE_BASE': now_jst,
+            'TIMEZONE': 'Asia/Tokyo'
         })
         
         if parsed_date:
+            # Convert to JST if not already timezone-aware, then format as date only
+            if parsed_date.tzinfo is None:
+                parsed_date = jst.localize(parsed_date)
+            else:
+                parsed_date = parsed_date.astimezone(jst)
             return parsed_date.strftime("%Y-%m-%d")
     except:
         pass
@@ -120,8 +161,15 @@ def extract_date(text: str, doc) -> str:
     for ent in doc.ents:
         if ent.label_ == "DATE":
             try:
-                parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'])
+                parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
+                    'TIMEZONE': 'Asia/Tokyo',
+                    'RELATIVE_BASE': now_jst
+                })
                 if parsed_date:
+                    if parsed_date.tzinfo is None:
+                        parsed_date = jst.localize(parsed_date)
+                    else:
+                        parsed_date = parsed_date.astimezone(jst)
                     return parsed_date.strftime("%Y-%m-%d")
             except:
                 continue

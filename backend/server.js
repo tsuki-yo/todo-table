@@ -139,6 +139,18 @@ app.post("/tasks/process", async (req, res) => {
       };
     }
 
+    // Check if user is a guest user
+    if (req.user.isGuest) {
+      // For guest users, just return processed task without saving to database
+      res.status(200).json({ 
+        task: processedTask.task,
+        dueDate: processedTask.dueDate,
+        priority: processedTask.priority,
+        message: "Task processed successfully (guest mode)" 
+      });
+      return;
+    }
+
     // Find the first available slot (empty task) in the user's tasks
     const existingTasksParams = {
       TableName: TABLE_NAME,
