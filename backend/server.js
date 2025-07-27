@@ -99,6 +99,72 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
+// POST endpoint: process natural language input for new task
+app.post("/tasks/process", async (req, res) => {
+  const { input } = req.body;
+  const userId = req.user.sub;
+
+  if (!input || typeof input !== 'string') {
+    return res.status(400).json({ error: "Input text is required" });
+  }
+
+  try {
+    // For now, basic parsing - you can integrate Claude API or Hugging Face later
+    const processedTask = {
+      task: input.trim(),
+      dueDate: "", // Can be extracted with NLP later
+      priority: "medium", // Can be extracted with NLP later
+    };
+
+    // Find the first available slot (empty task) in the user's tasks
+    const existingTasksParams = {
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "userId = :u",
+      ExpressionAttributeValues: { ":u": userId },
+      Limit: 20,
+    };
+
+    const existingTasks = await docClient.query(existingTasksParams).promise();
+    let targetId = null;
+
+    // Find first empty slot (0-19)
+    for (let i = 0; i < 20; i++) {
+      const existingTask = existingTasks.Items.find(item => item.id === i.toString());
+      if (!existingTask || !existingTask.task) {
+        targetId = i.toString();
+        break;
+      }
+    }
+
+    if (targetId === null) {
+      return res.status(400).json({ error: "All task slots are full" });
+    }
+
+    // Save the processed task
+    const params = {
+      TableName: TABLE_NAME,
+      Item: { 
+        userId, 
+        id: targetId, 
+        task: processedTask.task, 
+        dueDate: processedTask.dueDate 
+      },
+    };
+
+    await docClient.put(params).promise();
+    res.status(201).json({ 
+      id: targetId,
+      task: processedTask.task,
+      dueDate: processedTask.dueDate,
+      message: "Task processed and added successfully" 
+    });
+
+  } catch (err) {
+    console.error("Error processing task:", err);
+    res.status(500).json({ error: "Could not process task" });
+  }
+});
+
 // POST endpoint: add a new task
 app.post("/tasks", async (req, res) => {
   const { id, task, dueDate } = req.body;
