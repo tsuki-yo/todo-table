@@ -51,6 +51,16 @@ const TaskTable = () => {
       .catch((err) => console.error("Error updating task:", err));
   };
 
+  const handleSave = (task, index) => {
+    if (isGuestUser) return; // Don't save for guest users
+    
+    axios
+      .put(`${API_URL}/${index}`, task, {
+        headers: { Authorization: `Bearer ${auth.user?.access_token}` },
+      })
+      .catch((err) => console.error("Error updating task:", err));
+  };
+
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
 
@@ -188,7 +198,7 @@ const TaskTable = () => {
                       className="clear-button"
                       onClick={() => {
                         handleEdit(index, "task", "");
-                        handleBlur({ ...task, task: "" }, index);
+                        handleSave({ ...task, task: "" }, index);
                       }}
                     >
                       ×
@@ -209,7 +219,7 @@ const TaskTable = () => {
                       className="clear-button"
                       onClick={() => {
                         handleEdit(index, "dueDate", "");
-                        handleBlur({ ...task, dueDate: "" }, index);
+                        handleSave({ ...task, dueDate: "" }, index);
                       }}
                     >
                       ×

@@ -41,8 +41,6 @@ const LoginPage = () => {
           <button 
             onClick={handleCognitoLogin}
             className="sign-in-button"
-            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
           >
             Sign in with Cognito
           </button>
@@ -50,8 +48,6 @@ const LoginPage = () => {
             onClick={handleGuestLogin}
             className="guest-login-button"
             disabled={isLoading}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#5a6268'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#6c757d'}
           >
             {isLoading ? 'Loading...' : 'Continue as Guest'}
           </button>
