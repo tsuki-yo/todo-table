@@ -80,15 +80,21 @@ async def analyze_text(input_data: TextInput):
         # Detect if text contains Japanese characters
         has_japanese = bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', text))
         
+        print(f"Processing text: '{text}', has_japanese: {has_japanese}")
+        
         # Choose appropriate spaCy model
         if has_japanese and nlp_ja:
+            print("Using Japanese spaCy model")
             doc = nlp_ja(text)
         elif nlp_en:
+            print("Using English spaCy model")
             doc = nlp_en(text)
         elif nlp:
+            print("Using fallback spaCy model")
             doc = nlp(text)
         else:
             # No spaCy models available
+            print("No spaCy models available")
             return AnalysisResult(
                 task=text,
                 dueDate="",
@@ -104,6 +110,8 @@ async def analyze_text(input_data: TextInput):
         
         # Extract date
         due_date = extract_date(text, doc)
+        print(f"Extracted due_date: '{due_date}'")
+        print(f"Detected entities: {spacy_entities}")
         
         # Extract and clean task
         clean_task = extract_clean_task(text, due_date, doc)
@@ -134,46 +142,40 @@ async def analyze_text(input_data: TextInput):
 def extract_date(text: str, doc) -> str:
     """Extract and convert dates using dateparser with Japanese and English support"""
     
-    # Set timezone to JST (Japan Standard Time) for consistent date parsing
-    jst = pytz.timezone('Asia/Tokyo')
-    now_jst = datetime.now(jst)
+    # Use local timezone or UTC for consistent date parsing
+    now_local = datetime.now()
+    print(f"Date extraction for: '{text}', now_local: {now_local}")
     
     # Use dateparser with Japanese and English support
     try:
         parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
             'PREFER_DAY_OF_MONTH': 'current',
             'PREFER_DATES_FROM': 'future',
-            'RELATIVE_BASE': now_jst,
-            'TIMEZONE': 'Asia/Tokyo',
+            'RELATIVE_BASE': now_local,
             'FUZZY_WITH_TOKENS': True,
-            'STRICT_PARSING': False
+            'STRICT_PARSING': False,
+            'RETURN_AS_TIMEZONE_AWARE': False
         })
         
+        print(f"Dateparser result: {parsed_date}")
         if parsed_date:
-            # Convert to JST if not already timezone-aware, then format as date only
-            if parsed_date.tzinfo is None:
-                parsed_date = jst.localize(parsed_date)
-            else:
-                parsed_date = parsed_date.astimezone(jst)
-            return parsed_date.strftime("%Y-%m-%d")
-    except:
-        pass
+            result = parsed_date.strftime("%Y-%m-%d")
+            print(f"Formatted date: {result}")
+            return result
+    except Exception as e:
+        print(f"Dateparser error: {e}")
     
     # Check spaCy entities for dates as fallback
     for ent in doc.ents:
         if ent.label_ == "DATE":
             try:
                 parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
-                    'TIMEZONE': 'Asia/Tokyo',
-                    'RELATIVE_BASE': now_jst,
+                    'RELATIVE_BASE': now_local,
                     'FUZZY_WITH_TOKENS': True,
-                    'STRICT_PARSING': False
+                    'STRICT_PARSING': False,
+                    'RETURN_AS_TIMEZONE_AWARE': False
                 })
                 if parsed_date:
-                    if parsed_date.tzinfo is None:
-                        parsed_date = jst.localize(parsed_date)
-                    else:
-                        parsed_date = parsed_date.astimezone(jst)
                     return parsed_date.strftime("%Y-%m-%d")
             except:
                 continue
