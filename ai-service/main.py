@@ -74,16 +74,13 @@ async def analyze_text(input_data: TextInput):
         # Extract date
         due_date = extract_japanese_date(text, doc)
         
-        # Determine priority
-        priority = determine_priority_from_keywords(text)
-        
         # Extract and clean task
         clean_task = extract_clean_task(text, due_date, doc)
         
         return AnalysisResult(
             task=clean_task or text,
             dueDate=due_date,
-            priority=priority,
+            priority="medium",  # Default priority, not analyzed
             entities=spacy_entities,
             sentiment=[],  # Not using sentiment for now
             originalText=text
@@ -133,19 +130,6 @@ def extract_japanese_date(text: str, doc) -> str:
     
     return ""
 
-def determine_priority_from_keywords(text: str) -> str:
-    """Determine task priority based on Japanese keywords"""
-    
-    high_priority_keywords = ["急ぎ", "緊急", "重要", "すぐ", "至急"]
-    low_priority_keywords = ["後で", "いつか", "暇な時", "時間がある時"]
-    
-    if any(keyword in text for keyword in high_priority_keywords):
-        return "high"
-    
-    if any(keyword in text for keyword in low_priority_keywords):
-        return "low"
-    
-    return "medium"
 
 def extract_clean_task(text: str, extracted_date: str, doc) -> str:
     """Extract and clean task text using spaCy analysis"""
