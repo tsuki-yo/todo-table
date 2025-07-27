@@ -130,3 +130,32 @@ jobs:
           BACKEND_TAG=${{ needs.bump-version.outputs.new_tag }}
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG} -f backend/Dockerfile backend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG}
+
+  # 5) Build AI service, using the same version from bump-version
+  build-ai-service:
+    if: github.actor == 'tsuki-yo'
+    runs-on: ubuntu-latest
+    needs: [bump-version]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR 
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Build, Tag, and Push AI Service
+        run: |
+          AI_SERVICE_TAG=${{ needs.bump-version.outputs.new_tag }}
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG} -f ai-service/Dockerfile ai-service/
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG}
