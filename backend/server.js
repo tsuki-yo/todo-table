@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const AWS = require("aws-sdk");
+const axios = require("axios");
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
 const app = express();
@@ -109,12 +110,33 @@ app.post("/tasks/process", async (req, res) => {
   }
 
   try {
-    // For now, basic parsing - you can integrate Claude API or Hugging Face later
-    const processedTask = {
-      task: input.trim(),
-      dueDate: "", // Can be extracted with NLP later
-      priority: "medium", // Can be extracted with NLP later
-    };
+    // Call AI service for NLP processing
+    let processedTask;
+    try {
+      console.log("🔍 Calling AI service with input:", input);
+      const aiResponse = await axios.post('http://localhost:3003/analyze', {
+        text: input
+      }, {
+        timeout: 5000
+      });
+      
+      console.log("✅ AI service response:", aiResponse.data);
+      processedTask = {
+        task: aiResponse.data.task,
+        dueDate: aiResponse.data.dueDate,
+        priority: aiResponse.data.priority
+      };
+      
+    } catch (aiError) {
+      console.log("AI service unavailable, using fallback processing:", aiError.message);
+      console.log("Error details:", aiError.code, aiError.response?.status);
+      // Fallback to basic processing
+      processedTask = {
+        task: input.trim(),
+        dueDate: "",
+        priority: "medium"
+      };
+    }
 
     // Find the first available slot (empty task) in the user's tasks
     const existingTasksParams = {
@@ -156,6 +178,7 @@ app.post("/tasks/process", async (req, res) => {
       id: targetId,
       task: processedTask.task,
       dueDate: processedTask.dueDate,
+      priority: processedTask.priority,
       message: "Task processed and added successfully" 
     });
 
