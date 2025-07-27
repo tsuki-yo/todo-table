@@ -7,8 +7,10 @@ resources:
   - frontend-deployment.yaml
   - backend-sa.yaml
   - backend-deployment.yaml
+  - ai-service-deployment.yaml
   - frontend-service.yaml
   - backend-service.yaml
+  - ai-service-service.yaml
   - frontend-hpa.yaml
   - backend-hpa.yaml
   - horizontal-runner-autoscaler.yaml
