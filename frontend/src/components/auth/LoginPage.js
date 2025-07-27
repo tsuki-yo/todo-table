@@ -33,10 +33,11 @@ const LoginPage = () => {
     <div className="login-container">
       <div className="card login-card">
         <h1 className="login-title">Welcome to Todo Table</h1>
-        <p className="login-description">
-          A DevOps + AI showcase featuring intelligent task management with natural language processing. 
-          Create tasks in Japanese or English (e.g., "明日買い物をする" or "buy groceries tomorrow").
-        </p>
+        <div className="login-description">
+          <div>🚀 DevOps + AI showcase</div>
+          <div>🤖 Natural language processing</div>
+          <div>✨ Just type "buy groceries tomorrow"</div>
+        </div>
         <div className="button-container">
           <button 
             onClick={handleCognitoLogin}

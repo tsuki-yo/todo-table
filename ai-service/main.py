@@ -142,23 +142,30 @@ async def analyze_text(input_data: TextInput):
 def extract_date(text: str, doc) -> str:
     """Extract and convert dates using dateparser with Japanese and English support"""
     
-    # Use local timezone or UTC for consistent date parsing
-    now_local = datetime.now()
-    print(f"Date extraction for: '{text}', now_local: {now_local}")
+    # Use Asia/Tokyo timezone for consistent date parsing
+    jst = pytz.timezone('Asia/Tokyo')
+    now_jst = datetime.now(jst)
+    print(f"Date extraction for: '{text}', now_jst: {now_jst}")
     
     # Use dateparser with Japanese and English support
     try:
         parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
             'PREFER_DAY_OF_MONTH': 'current',
             'PREFER_DATES_FROM': 'future',
-            'RELATIVE_BASE': now_local,
+            'RELATIVE_BASE': now_jst,
+            'TIMEZONE': 'Asia/Tokyo',
             'FUZZY_WITH_TOKENS': True,
             'STRICT_PARSING': False,
-            'RETURN_AS_TIMEZONE_AWARE': False
+            'RETURN_AS_TIMEZONE_AWARE': True
         })
         
         print(f"Dateparser result: {parsed_date}")
         if parsed_date:
+            # Convert to JST and format as date only
+            if parsed_date.tzinfo is None:
+                parsed_date = jst.localize(parsed_date)
+            else:
+                parsed_date = parsed_date.astimezone(jst)
             result = parsed_date.strftime("%Y-%m-%d")
             print(f"Formatted date: {result}")
             return result
@@ -170,12 +177,18 @@ def extract_date(text: str, doc) -> str:
         if ent.label_ == "DATE":
             try:
                 parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
-                    'RELATIVE_BASE': now_local,
+                    'RELATIVE_BASE': now_jst,
+                    'TIMEZONE': 'Asia/Tokyo',
                     'FUZZY_WITH_TOKENS': True,
                     'STRICT_PARSING': False,
-                    'RETURN_AS_TIMEZONE_AWARE': False
+                    'RETURN_AS_TIMEZONE_AWARE': True
                 })
                 if parsed_date:
+                    # Convert to JST and format as date only
+                    if parsed_date.tzinfo is None:
+                        parsed_date = jst.localize(parsed_date)
+                    else:
+                        parsed_date = parsed_date.astimezone(jst)
                     return parsed_date.strftime("%Y-%m-%d")
             except:
                 continue
