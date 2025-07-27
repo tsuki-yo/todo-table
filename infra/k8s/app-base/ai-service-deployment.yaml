@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-ai-service
+  namespace: todo-app
+spec:
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: todo-ai-service
+  template:
+    metadata:
+      labels:
+        app: todo-ai-service
+    spec:
+      containers:
+      - name: todo-ai-service
+        image: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
+        ports:
+        - containerPort: 3003
+        resources:
+            requests:
+              memory: 200Mi
+              cpu: 100m
+            limits:
+              memory: 200Mi
+              cpu: 200m
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 2

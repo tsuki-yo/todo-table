@@ -12,6 +12,7 @@ const TaskTable = () => {
   const [tasks, setTasks] = useState(
     Array(TOTAL_ROWS).fill({ id: null, task: "", dueDate: "" })
   );
+  const [newTaskInput, setNewTaskInput] = useState("");
   const isGuestUser = localStorage.getItem('authType') === 'guest';
 
   useEffect(() => {
@@ -50,6 +51,37 @@ const TaskTable = () => {
       .catch((err) => console.error("Error updating task:", err));
   };
 
+  const handleAddTask = async () => {
+    if (!newTaskInput.trim()) return;
+    if (isGuestUser) return; // Don't save for guest users
+
+    try {
+      const response = await axios.post(`${API_URL}/process`, 
+        { input: newTaskInput },
+        {
+          headers: { Authorization: `Bearer ${auth.user?.access_token}` },
+        }
+      );
+
+      // Update the tasks state with the new task
+      const newTask = response.data;
+      setTasks((prevTasks) => {
+        const updatedTasks = [...prevTasks];
+        updatedTasks[parseInt(newTask.id)] = {
+          id: newTask.id,
+          task: newTask.task,
+          dueDate: newTask.dueDate
+        };
+        return updatedTasks;
+      });
+
+      // Clear the input
+      setNewTaskInput("");
+    } catch (err) {
+      console.error("Error adding task:", err);
+    }
+  };
+
   const isPastDue = (dateString) => {
     if (!dateString) return false;
     const today = new Date();
@@ -60,6 +92,21 @@ const TaskTable = () => {
 
   return (
     <div className="task-table-container">
+      <div className="new-task-input-container">
+        <input
+          type="text"
+          value={newTaskInput}
+          onChange={(e) => setNewTaskInput(e.target.value)}
+          placeholder="Add a new task..."
+          className="new-task-input"
+        />
+        <button 
+          className="add-task-button"
+          onClick={handleAddTask}
+        >
+          Add
+        </button>
+      </div>
       <table className="task-table">
         <thead>
           <tr className="table-header">

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const AWS = require("aws-sdk");
+const axios = require("axios");
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
 
 const app = express();
@@ -96,6 +97,94 @@ app.put("/tasks/:id", async (req, res) => {
   } catch (err) {
     console.error("Error updating task:", err);
     res.status(500).json({ error: "Could not update task" });
+  }
+});
+
+// POST endpoint: process natural language input for new task
+app.post("/tasks/process", async (req, res) => {
+  const { input } = req.body;
+  const userId = req.user.sub;
+
+  if (!input || typeof input !== 'string') {
+    return res.status(400).json({ error: "Input text is required" });
+  }
+
+  try {
+    // Call AI service for NLP processing
+    let processedTask;
+    try {
+      console.log("🔍 Calling AI service with input:", input);
+      const aiResponse = await axios.post('http://localhost:3003/analyze', {
+        text: input
+      }, {
+        timeout: 5000
+      });
+      
+      console.log("✅ AI service response:", aiResponse.data);
+      processedTask = {
+        task: aiResponse.data.task,
+        dueDate: aiResponse.data.dueDate,
+        priority: aiResponse.data.priority
+      };
+      
+    } catch (aiError) {
+      console.log("AI service unavailable, using fallback processing:", aiError.message);
+      console.log("Error details:", aiError.code, aiError.response?.status);
+      // Fallback to basic processing
+      processedTask = {
+        task: input.trim(),
+        dueDate: "",
+        priority: "medium"
+      };
+    }
+
+    // Find the first available slot (empty task) in the user's tasks
+    const existingTasksParams = {
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "userId = :u",
+      ExpressionAttributeValues: { ":u": userId },
+      Limit: 20,
+    };
+
+    const existingTasks = await docClient.query(existingTasksParams).promise();
+    let targetId = null;
+
+    // Find first empty slot (0-19)
+    for (let i = 0; i < 20; i++) {
+      const existingTask = existingTasks.Items.find(item => item.id === i.toString());
+      if (!existingTask || !existingTask.task) {
+        targetId = i.toString();
+        break;
+      }
+    }
+
+    if (targetId === null) {
+      return res.status(400).json({ error: "All task slots are full" });
+    }
+
+    // Save the processed task
+    const params = {
+      TableName: TABLE_NAME,
+      Item: { 
+        userId, 
+        id: targetId, 
+        task: processedTask.task, 
+        dueDate: processedTask.dueDate 
+      },
+    };
+
+    await docClient.put(params).promise();
+    res.status(201).json({ 
+      id: targetId,
+      task: processedTask.task,
+      dueDate: processedTask.dueDate,
+      priority: processedTask.priority,
+      message: "Task processed and added successfully" 
+    });
+
+  } catch (err) {
+    console.error("Error processing task:", err);
+    res.status(500).json({ error: "Could not process task" });
   }
 });
 

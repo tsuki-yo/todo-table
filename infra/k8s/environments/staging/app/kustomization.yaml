@@ -3,5 +3,7 @@ replicas:
   count: 1
 - name: todo-backend
   count: 1
+- name: todo-ai-service
+  count: 1
 resources:
 - ../../../app-base
