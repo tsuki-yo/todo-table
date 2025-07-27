@@ -76,17 +76,18 @@ app.get("/tasks", async (req, res) => {
 // PUT endpoint: update a task
 app.put("/tasks/:id", async (req, res) => {
   const { id } = req.params;
-  const { task, dueDate } = req.body;
+  const { task, dueDate, completed } = req.body;
   const userId = req.user.sub;
 
   const params = {
     TableName: TABLE_NAME,
     Key: { userId, id },
-    UpdateExpression: "set #t = :t, dueDate = :d",
+    UpdateExpression: "set #t = :t, dueDate = :d, completed = :c",
     ExpressionAttributeNames: { "#t": "task" },
     ExpressionAttributeValues: {
       ":t": task,
       ":d": dueDate,
+      ":c": completed || false,
     },
     ReturnValues: "ALL_NEW",
   };
