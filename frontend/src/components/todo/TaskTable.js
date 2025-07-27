@@ -140,7 +140,7 @@ const TaskTable = () => {
           type="text"
           value={newTaskInput}
           onChange={(e) => setNewTaskInput(e.target.value)}
-          placeholder="Add a new task..."
+          placeholder="Add task in natural language (e.g., 'buy groceries tomorrow')"
           className="new-task-input"
         />
         <button 

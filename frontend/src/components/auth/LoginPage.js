@@ -30,7 +30,8 @@ const LoginPage = () => {
       <div className="card login-card">
         <h1 className="login-title">Welcome to Todo Table</h1>
         <p className="login-description">
-          A simple and elegant way to manage your tasks. Sign in to get started!
+          A DevOps + AI showcase featuring intelligent task management with natural language processing. 
+          Create tasks in Japanese or English (e.g., "明日買い物をする" or "buy groceries tomorrow").
         </p>
         <div className="button-container">
           <button 

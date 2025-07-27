@@ -1,6 +1,6 @@
-# Todo Table - Cloud-Native DevOps Showcase 🚀
+# Todo Table - Cloud-Native DevOps + AI Showcase 🚀
 
-A production-grade application demonstrating modern cloud-native architecture and DevOps practices. Built with Kubernetes-native principles and deployed on AWS EKS, showcasing expertise in container orchestration, infrastructure automation, and GitOps workflows.
+A production-grade application demonstrating modern cloud-native architecture, DevOps practices, and AI integration. Built with Kubernetes-native principles and deployed on AWS EKS, showcasing expertise in container orchestration, infrastructure automation, GitOps workflows, and intelligent natural language processing.
 
 ## Architecture 🏗️
 
@@ -14,6 +14,7 @@ graph TD
             subgraph Apps["Applications"]
                 Frontend["Frontend"]
                 Backend["Backend"]
+                AI["AI Service"]
             end
         end
         subgraph Services["AWS Services"]; ECR["ECR"]; DynamoDB["DynamoDB"]; Cognito["Cognito"]; end
@@ -44,6 +45,13 @@ graph TD
     style CI fill:#232F3E,color:white
     linkStyle default stroke:#8A2BE2,stroke-width:2px,color:black
 ```
+
+## AI-Powered Features 🤖
+- **Natural Language Processing:** Intelligent task creation using spaCy and dateparser
+- **Multi-language Support:** Japanese and English date parsing (e.g., "明日買い物をする", "buy groceries tomorrow")
+- **Smart Date Extraction:** Automatic timezone-aware date detection and conversion
+- **Microservice Architecture:** Dedicated AI service for scalable NLP processing
+- **Guest & Authenticated Users:** Full AI functionality available for all user types
 
 ## Cloud-Native & DevOps Highlights 🎯
 - **Kubernetes Architecture:** EKS cluster with multi-AZ deployment and auto-scaling capabilities, supporting high availability through:
@@ -77,6 +85,7 @@ graph TD
 - **Monitoring:** Prometheus, Grafana
 - **Security:** AWS IAM, Sealed Secrets
 - **Application:** React, Node.js, Express, DynamoDB
+- **AI/ML:** Python, FastAPI, spaCy, dateparser, pytz
 
 ## DevOps Practices Demonstrated 📈
 - Infrastructure as Code (Terraform)
