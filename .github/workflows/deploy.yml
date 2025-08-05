@@ -50,8 +50,20 @@ jobs:
       working-directory: infra/terraform
       run: terraform apply --auto-approve
 
+    - name: Deploy ArgoCD Applications
+      run: |
+        kubectl apply -f infra/k8s/application.yaml
+        kubectl apply -f infra/k8s/actions-runner-app.yaml
+
+    - name: Wait for Applications to Sync
+      run: |
+        echo "Waiting for ArgoCD applications to sync..."
+        kubectl wait --for=condition=synced application/my-app -n argocd --timeout=300s || echo "Main app sync timeout"
+        kubectl wait --for=condition=synced application/actions-runner-controller -n argocd --timeout=300s || echo "Actions runner sync timeout"
+
     - name: Verify Deployment
       run: |
+        kubectl get applications -n argocd
         kubectl get pods -A
         kubectl get ingress -A
         kubectl get svc -A
