@@ -1,0 +1,72 @@
+name: Destroy Infrastructure
+
+on:
+  schedule:
+    - cron: '0 18 * * 1-5'  # 6PM JST weekdays (9 UTC = 18 JST)
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ap-northeast-1 --name staging-todo-eks || echo "EKS cluster may not exist"
+
+    - name: Delete Applications
+      run: |
+        kubectl delete -f infra/k8s/application.yaml || echo "Main application may not exist"
+        kubectl delete -f infra/k8s/actions-runner-app.yaml || echo "Actions runner app may not exist"
+
+    - name: Terraform Init
+      working-directory: infra/terraform
+      run: terraform init
+
+    - name: Destroy External Nginx First
+      working-directory: infra/terraform
+      run: terraform destroy --target helm_release.external_nginx --auto-approve
+      continue-on-error: true
+
+    - name: Terraform Destroy All
+      working-directory: infra/terraform
+      run: terraform destroy --auto-approve
+      timeout-minutes: 30
+
+    - name: Verify Destruction
+      run: |
+        echo "Checking for remaining resources..."
+        aws eks list-clusters --region ap-northeast-1 || echo "No EKS clusters found"
+        aws ec2 describe-vpcs --filters "Name=tag:Name,Values=staging-todo-eks-vpc" --region ap-northeast-1 || echo "No VPCs found"
+
+    - name: Send notification on failure
+      if: failure()
+      run: |
+        echo "Destruction failed at $(date)"
+        # Add notification logic here (Slack, email, etc.)
+
+    - name: Send success notification
+      if: success()
+      run: |
+        echo "Infrastructure successfully destroyed at $(date)"
+        # Add notification logic here
