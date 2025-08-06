@@ -46,10 +46,6 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ap-northeast-1 --name staging-todo-eks
 
-    - name: Terraform Apply
-      working-directory: infra/terraform
-      run: terraform apply --auto-approve
-
     - name: Deploy ArgoCD Applications
       run: |
         kubectl apply -f infra/k8s/application.yaml
