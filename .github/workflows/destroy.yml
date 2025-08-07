@@ -39,11 +39,6 @@ jobs:
         kubectl delete -f infra/k8s/application.yaml || echo "Main application may not exist"
         kubectl delete -f infra/k8s/actions-runner-app.yaml || echo "Actions runner app may not exist"
 
-    - name: Wait for ArgoCD Cleanup
-      run: |
-        echo "Waiting for ArgoCD to clean up application resources..."
-        sleep 60
-
     - name: Terraform Init
       working-directory: infra/terraform
       run: terraform init
@@ -52,11 +47,6 @@ jobs:
       working-directory: infra/terraform
       run: terraform destroy --target helm_release.external_nginx --auto-approve
       continue-on-error: true
-
-    - name: Wait for Nginx Cleanup
-      run: |
-        echo "Waiting for nginx load balancer deletion..."
-        sleep 120
 
     - name: Terraform Destroy All
       working-directory: infra/terraform
