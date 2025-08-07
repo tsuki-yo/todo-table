@@ -2,7 +2,7 @@ name: Deploy Infrastructure
 
 on:
   schedule:
-    - cron: '0 9 * * 1-5'  # 9AM JST weekdays (0 UTC = 9 JST)
+    - cron: '30 23 * * 0-4'  # 8:30AM JST weekdays (30 mins before 9AM JST)
   workflow_dispatch:  # Allow manual triggers
 
 jobs:

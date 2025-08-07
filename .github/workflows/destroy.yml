@@ -2,7 +2,7 @@ name: Destroy Infrastructure
 
 on:
   schedule:
-    - cron: '0 18 * * 1-5'  # 6PM JST weekdays (9 UTC = 18 JST)
+    - cron: '0 9 * * 1-5'  # 6PM JST weekdays (9 UTC = 18 JST)
   workflow_dispatch:  # Allow manual triggers
 
 jobs:
