@@ -54,8 +54,42 @@ jobs:
     - name: Wait for Applications to Sync
       run: |
         echo "Waiting for ArgoCD applications to sync..."
-        kubectl wait --for=condition=synced application/my-app -n argocd --timeout=300s || echo "Main app sync timeout"
-        kubectl wait --for=condition=synced application/actions-runner-controller -n argocd --timeout=300s || echo "Actions runner sync timeout"
+        
+        # Function to check if application is synced and healthy
+        check_app_status() {
+          local app_name=$1
+          local max_attempts=30
+          local attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Checking $app_name status (attempt $attempt/$max_attempts)..."
+            
+            # Get sync status and health status
+            sync_status=$(kubectl get application $app_name -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
+            health_status=$(kubectl get application $app_name -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown")
+            
+            echo "$app_name: Sync=$sync_status, Health=$health_status"
+            
+            if [[ "$sync_status" == "Synced" && "$health_status" == "Healthy" ]]; then
+              echo "✅ $app_name is synced and healthy!"
+              return 0
+            fi
+            
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+          
+          echo "⚠️ $app_name did not reach synced/healthy state within timeout"
+          kubectl describe application $app_name -n argocd | tail -20
+          return 1
+        }
+        
+        # Check both applications
+        check_app_status "actions-runner-controller" &
+        check_app_status "my-app" &
+        
+        # Wait for both background jobs
+        wait
 
     - name: Verify Deployment
       run: |
