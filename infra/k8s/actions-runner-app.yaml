@@ -8,13 +8,6 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://actions-runner-controller.github.io/actions-runner-controller
-    chart: actions-runner-controller
-    targetRevision: 0.23.7
-    helm:
-      valueFiles:
-      - $values/infra/terraform/values/action-runner.yaml
   sources:
   - repoURL: https://actions-runner-controller.github.io/actions-runner-controller
     chart: actions-runner-controller
@@ -35,3 +28,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - Validate=true
+      - ServerSideApply=true
+      - Replace=true
