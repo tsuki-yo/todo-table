@@ -48,8 +48,8 @@ jobs:
 
     - name: Deploy ArgoCD Applications
       run: |
-        kubectl apply -f infra/k8s/application.yaml
         kubectl apply -f infra/k8s/actions-runner-app.yaml
+        kubectl apply -f infra/k8s/application.yaml
 
     - name: Wait for Applications to Sync
       run: |
