@@ -15,6 +15,7 @@ resources:
   - backend-hpa.yaml
   - horizontal-runner-autoscaler.yaml
   - ingress.yaml
+  - internal-app-certificate.yaml
   - cluster-issuer.yaml
   - sealed-repo-secret.yaml
   - sealed-github-app-secret.yaml
