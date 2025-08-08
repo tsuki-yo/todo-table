@@ -1,0 +1,105 @@
+name: Deploy Infrastructure
+
+on:
+  schedule:
+    - cron: '30 23 * * 0-4'  # 8:30AM JST weekdays (30 mins before 9AM JST)
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Terraform Init
+      working-directory: infra/terraform
+      run: terraform init
+
+    - name: Terraform Plan
+      working-directory: infra/terraform
+      run: terraform plan
+
+    - name: Terraform Apply
+      working-directory: infra/terraform
+      run: terraform apply --auto-approve
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ap-northeast-1 --name staging-todo-eks
+
+    - name: Deploy ArgoCD Applications
+      run: |
+        kubectl apply -f infra/k8s/actions-runner-app.yaml
+        kubectl apply -f infra/k8s/application.yaml
+
+    - name: Wait for Applications to Sync
+      run: |
+        echo "Waiting for ArgoCD applications to sync..."
+        
+        # Function to check if application is synced and healthy
+        check_app_status() {
+          local app_name=$1
+          local max_attempts=30
+          local attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Checking $app_name status (attempt $attempt/$max_attempts)..."
+            
+            # Get sync status and health status
+            sync_status=$(kubectl get application $app_name -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
+            health_status=$(kubectl get application $app_name -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null || echo "Unknown")
+            
+            echo "$app_name: Sync=$sync_status, Health=$health_status"
+            
+            if [[ "$sync_status" == "Synced" && "$health_status" == "Healthy" ]]; then
+              echo "✅ $app_name is synced and healthy!"
+              return 0
+            fi
+            
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+          
+          echo "⚠️ $app_name did not reach synced/healthy state within timeout"
+          kubectl describe application $app_name -n argocd | tail -20
+          return 1
+        }
+        
+        # Check both applications
+        check_app_status "actions-runner-controller" &
+        check_app_status "my-app" &
+        
+        # Wait for both background jobs
+        wait
+
+    - name: Verify Deployment
+      run: |
+        kubectl get applications -n argocd
+        kubectl get pods -A
+        kubectl get ingress -A
+        kubectl get svc -A
+
+    - name: Send notification on failure
+      if: failure()
+      run: |
+        echo "Deployment failed at $(date)"
+        # Add notification logic here (Slack, email, etc.)

@@ -51,9 +51,62 @@ const TaskTable = () => {
       .catch((err) => console.error("Error updating task:", err));
   };
 
+  const handleSave = (task, index) => {
+    if (isGuestUser) return; // Don't save for guest users
+    
+    axios
+      .put(`${API_URL}/${index}`, task, {
+        headers: { Authorization: `Bearer ${auth.user?.access_token}` },
+      })
+      .catch((err) => console.error("Error updating task:", err));
+  };
+
   const handleAddTask = async () => {
     if (!newTaskInput.trim()) return;
-    if (isGuestUser) return; // Don't save for guest users
+
+    if (isGuestUser) {
+      // For guest users, use backend AI processing but don't save to server
+      try {
+        const guestToken = localStorage.getItem('guestToken');
+        const response = await axios.post(`${API_URL}/process`, 
+          { input: newTaskInput },
+          {
+            headers: { Authorization: `Bearer ${guestToken}` },
+          }
+        );
+        
+        const processedTask = response.data;
+        const firstEmptyIndex = tasks.findIndex(task => !task.task);
+        if (firstEmptyIndex !== -1) {
+          setTasks((prevTasks) => {
+            const updatedTasks = [...prevTasks];
+            updatedTasks[firstEmptyIndex] = {
+              id: firstEmptyIndex.toString(),
+              task: processedTask.task,
+              dueDate: processedTask.dueDate
+            };
+            return updatedTasks;
+          });
+        }
+      } catch (aiError) {
+        console.log("AI service unavailable for guest, using fallback:", aiError.message);
+        // Fallback: add raw text without processing
+        const firstEmptyIndex = tasks.findIndex(task => !task.task);
+        if (firstEmptyIndex !== -1) {
+          setTasks((prevTasks) => {
+            const updatedTasks = [...prevTasks];
+            updatedTasks[firstEmptyIndex] = {
+              id: firstEmptyIndex.toString(),
+              task: newTaskInput.trim(),
+              dueDate: ""
+            };
+            return updatedTasks;
+          });
+        }
+      }
+      setNewTaskInput("");
+      return;
+    }
 
     try {
       const response = await axios.post(`${API_URL}/process`, 
@@ -97,7 +150,7 @@ const TaskTable = () => {
           type="text"
           value={newTaskInput}
           onChange={(e) => setNewTaskInput(e.target.value)}
-          placeholder="Add a new task..."
+          placeholder="Add task in natural language (e.g., 'buy groceries tomorrow')"
           className="new-task-input"
         />
         <button 
@@ -131,22 +184,48 @@ const TaskTable = () => {
                 />
               </td>
               <td className="table-cell">
-                <input
-                  type="text"
-                  value={task?.task || ""}
-                  onChange={(e) => handleEdit(index, "task", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  className="task-input"
-                  placeholder="Enter task..."
-                />
+                <div className="input-with-clear">
+                  <input
+                    type="text"
+                    value={task?.task || ""}
+                    onChange={(e) => handleEdit(index, "task", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    className="task-input"
+                    placeholder="Enter task..."
+                  />
+                  {task?.task && (
+                    <button
+                      className="clear-button"
+                      onClick={() => {
+                        handleEdit(index, "task", "");
+                        handleSave({ ...task, task: "" }, index);
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="table-cell">
-                <DateInput
-                  value={task?.dueDate || ""}
-                  onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
-                  onBlur={() => handleBlur(task, index)}
-                  isPastDue={isPastDue(task?.dueDate)}
-                />
+                <div className="input-with-clear">
+                  <DateInput
+                    value={task?.dueDate || ""}
+                    onChange={(e) => handleEdit(index, "dueDate", e.target.value)}
+                    onBlur={() => handleBlur(task, index)}
+                    isPastDue={isPastDue(task?.dueDate)}
+                  />
+                  {task?.dueDate && (
+                    <button
+                      className="clear-button"
+                      onClick={() => {
+                        handleEdit(index, "dueDate", "");
+                        handleSave({ ...task, dueDate: "" }, index);
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

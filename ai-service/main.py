@@ -6,6 +6,7 @@ import re
 import os
 from datetime import datetime, timedelta
 import dateparser
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,13 +22,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load spaCy Japanese model
+# Load spaCy models
+nlp_ja = None
+nlp_en = None
+
 try:
-    nlp = spacy.load("ja_core_news_sm")
+    nlp_ja = spacy.load("ja_core_news_sm")
     print("✅ Japanese spaCy model loaded successfully!")
 except OSError:
     print("❌ Japanese spaCy model not found. Run: python -m spacy download ja_core_news_sm")
-    nlp = None
+
+try:
+    nlp_en = spacy.load("en_core_web_sm")
+    print("✅ English spaCy model loaded successfully!")
+except OSError:
+    print("❌ English spaCy model not found. Run: python -m spacy download en_core_web_sm")
+
+# Use Japanese model as primary, fallback to English
+nlp = nlp_ja or nlp_en
 
 class TextInput(BaseModel):
     text: str
@@ -65,17 +77,41 @@ async def analyze_text(input_data: TextInput):
         )
     
     try:
-        # Process with spaCy
-        doc = nlp(text)
+        # Detect if text contains Japanese characters
+        has_japanese = bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]', text))
+        
+        print(f"Processing text: '{text}', has_japanese: {has_japanese}")
+        
+        # Choose appropriate spaCy model
+        if has_japanese and nlp_ja:
+            print("Using Japanese spaCy model")
+            doc = nlp_ja(text)
+        elif nlp_en:
+            print("Using English spaCy model")
+            doc = nlp_en(text)
+        elif nlp:
+            print("Using fallback spaCy model")
+            doc = nlp(text)
+        else:
+            # No spaCy models available
+            print("No spaCy models available")
+            return AnalysisResult(
+                task=text,
+                dueDate="",
+                priority="medium",
+                entities=[],
+                sentiment=[],
+                originalText=text,
+                note="spaCy models not available, using basic processing"
+            )
         
         # Extract entities from spaCy
         spacy_entities = [(ent.text, ent.label_) for ent in doc.ents]
         
         # Extract date
-        due_date = extract_japanese_date(text, doc)
-        
-        # Determine priority
-        priority = determine_priority_from_keywords(text)
+        due_date = extract_date(text, doc)
+        print(f"Extracted due_date: '{due_date}'")
+        print(f"Detected entities: {spacy_entities}")
         
         # Extract and clean task
         clean_task = extract_clean_task(text, due_date, doc)
@@ -83,7 +119,7 @@ async def analyze_text(input_data: TextInput):
         return AnalysisResult(
             task=clean_task or text,
             dueDate=due_date,
-            priority=priority,
+            priority="medium",  # Default priority, not analyzed
             entities=spacy_entities,
             sentiment=[],  # Not using sentiment for now
             originalText=text
@@ -103,49 +139,83 @@ async def analyze_text(input_data: TextInput):
             note=f"Processing error: {str(error)}"
         )
 
-def extract_japanese_date(text: str, doc) -> str:
-    """Extract and convert Japanese dates"""
+def extract_date(text: str, doc) -> str:
+    """Extract and convert dates using dateparser with Japanese and English support"""
     
-    # Custom Japanese date patterns
-    japanese_date_patterns = {
-        "今日": datetime.now().strftime("%Y-%m-%d"),
-        "明日": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
-        "明後日": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
-        "来週": (datetime.now() + timedelta(weeks=1)).strftime("%Y-%m-%d"),
-        "来月": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
-    }
+    # Use Asia/Tokyo timezone for consistent date parsing
+    jst = pytz.timezone('Asia/Tokyo')
+    now_jst = datetime.now(jst)
+    print(f"Date extraction for: '{text}', now_jst: {now_jst}")
     
-    # Check custom patterns first
-    for jp_date, iso_date in japanese_date_patterns.items():
-        if jp_date in text:
-            return iso_date
+    # Try dateparser with simple settings
+    try:
+        parsed_date = dateparser.parse(text, languages=['ja', 'en'], settings={
+            'PREFER_DATES_FROM': 'future',
+            'RELATIVE_BASE': now_jst,
+            'TIMEZONE': 'Asia/Tokyo'
+        })
+        
+        print(f"Dateparser result: {parsed_date}")
+        if parsed_date:
+            # Convert to JST and format as date only
+            if parsed_date.tzinfo is None:
+                parsed_date = jst.localize(parsed_date)
+            else:
+                parsed_date = parsed_date.astimezone(jst)
+            result = parsed_date.strftime("%Y-%m-%d")
+            print(f"Formatted date: {result}")
+            return result
+    except Exception as e:
+        print(f"Dateparser error: {e}")
     
-    # Check spaCy entities for dates
+    # Check spaCy entities for dates as fallback
+    print(f"spaCy entities found: {[(ent.text, ent.label_) for ent in doc.ents]}")
     for ent in doc.ents:
         if ent.label_ == "DATE":
             try:
-                # Use dateparser with Japanese language support
-                parsed_date = dateparser.parse(ent.text, languages=['ja'])
+                parsed_date = dateparser.parse(ent.text, languages=['ja', 'en'], settings={
+                    'RELATIVE_BASE': now_jst,
+                    'TIMEZONE': 'Asia/Tokyo'
+                })
+                print(f"spaCy entity '{ent.text}' parsed as: {parsed_date}")
                 if parsed_date:
-                    return parsed_date.strftime("%Y-%m-%d")
-            except:
+                    if parsed_date.tzinfo is None:
+                        parsed_date = jst.localize(parsed_date)
+                    else:
+                        parsed_date = parsed_date.astimezone(jst)
+                    result = parsed_date.strftime("%Y-%m-%d")
+                    print(f"spaCy entity formatted: {result}")
+                    return result
+            except Exception as e:
+                print(f"spaCy entity parsing error: {e}")
                 continue
     
+    # Japanese date words that spaCy doesn't tag as DATE entities
+    japanese_date_words = ['今日', '明日', '明後日', '昨日', '来週', '来月']
+    for token in doc:
+        if token.text in japanese_date_words:
+            try:
+                parsed_date = dateparser.parse(token.text, languages=['ja'], settings={
+                    'RELATIVE_BASE': now_jst,
+                    'TIMEZONE': 'Asia/Tokyo'
+                })
+                print(f"Japanese token '{token.text}' parsed as: {parsed_date}")
+                if parsed_date:
+                    if parsed_date.tzinfo is None:
+                        parsed_date = jst.localize(parsed_date)
+                    else:
+                        parsed_date = parsed_date.astimezone(jst)
+                    result = parsed_date.strftime("%Y-%m-%d")
+                    print(f"Japanese token formatted: {result}")
+                    return result
+            except Exception as e:
+                print(f"Japanese token parsing error: {e}")
+                continue
+    
+    print("No date found")
     return ""
 
-def determine_priority_from_keywords(text: str) -> str:
-    """Determine task priority based on Japanese keywords"""
-    
-    high_priority_keywords = ["急ぎ", "緊急", "重要", "すぐ", "至急"]
-    low_priority_keywords = ["後で", "いつか", "暇な時", "時間がある時"]
-    
-    if any(keyword in text for keyword in high_priority_keywords):
-        return "high"
-    
-    if any(keyword in text for keyword in low_priority_keywords):
-        return "low"
-    
-    return "medium"
+
 
 def extract_clean_task(text: str, extracted_date: str, doc) -> str:
     """Extract and clean task text using spaCy analysis"""
@@ -153,8 +223,14 @@ def extract_clean_task(text: str, extracted_date: str, doc) -> str:
     # Remove date patterns
     task_text = text
     
-    # Remove Japanese date words
-    date_words = ["今日", "明日", "明後日", "来週", "来月"]
+    # Remove Japanese and English date words
+    date_words = [
+        # Japanese
+        "今日", "明日", "明後日", "来週", "来月",
+        # English
+        "today", "tomorrow", "tonight", "next week", "next month", 
+        "this week", "this month", "yesterday"
+    ]
     for date_word in date_words:
         task_text = task_text.replace(date_word, "")
     

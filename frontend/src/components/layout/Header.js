@@ -14,6 +14,7 @@ const Header = () => {
       // Clear guest data
       localStorage.removeItem('authType');
       localStorage.removeItem('guestUser');
+      localStorage.removeItem('guestToken');
       navigate('/login');
     } else {
       // OIDC logout

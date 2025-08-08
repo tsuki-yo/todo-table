@@ -10,8 +10,12 @@ const LoginPage = () => {
 
   const handleGuestLogin = () => {
     setIsLoading(true);
+    // Generate 32-character hex token for guest
+    const guestToken = Array.from({length: 32}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    
     // Set guest user in local storage
     localStorage.setItem('authType', 'guest');
+    localStorage.setItem('guestToken', guestToken);
     localStorage.setItem('guestUser', JSON.stringify({
       id: 'guest-' + Math.random().toString(36).substr(2, 9),
       name: 'Guest User',
@@ -29,15 +33,15 @@ const LoginPage = () => {
     <div className="login-container">
       <div className="card login-card">
         <h1 className="login-title">Welcome to Todo Table</h1>
-        <p className="login-description">
-          A simple and elegant way to manage your tasks. Sign in to get started!
-        </p>
+        <div className="login-description">
+          <div>🚀 DevOps + AI showcase</div>
+          <div>🤖 Natural language processing</div>
+          <div>✨ Just type "buy groceries tomorrow"</div>
+        </div>
         <div className="button-container">
           <button 
             onClick={handleCognitoLogin}
             className="sign-in-button"
-            onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
           >
             Sign in with Cognito
           </button>
@@ -45,8 +49,6 @@ const LoginPage = () => {
             onClick={handleGuestLogin}
             className="guest-login-button"
             disabled={isLoading}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#5a6268'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#6c757d'}
           >
             {isLoading ? 'Loading...' : 'Continue as Guest'}
           </button>

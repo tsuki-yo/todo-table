@@ -37,28 +37,11 @@ jobs:
           cd frontend
           npm run test:ci
 
-  # 1) Reset deploy to match dev (safer than rebase)
-  reset-deploy:
-    if: github.actor == 'tsuki-yo'
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout dev
-        uses: actions/checkout@v2
-        with:
-          ref: dev
-
-      - name: Reset deploy branch to dev
-        run: |
-          git fetch origin deploy:deploy || echo "Deploy branch may not exist yet"
-          git checkout -B deploy
-          git push origin deploy --force
-
-  # 2) Bump version in a single job, store it as output
+  # 1) Bump version in a single job, store it as output
   bump-version:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
-    needs: [reset-deploy]
+    needs: [test]
     outputs:
       new_tag: ${{ steps.increment-git-tag.outputs.new_tag }}
     steps:
@@ -72,7 +55,7 @@ jobs:
         run: |
           bash ./.github/script/git_update.sh -v patch
 
-  # 3) Build frontend, using the single version from bump-version
+  # 2) Build frontend, using the single version from bump-version
   build-frontend:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
@@ -101,7 +84,7 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG} -f frontend/Dockerfile frontend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG}
 
-  # 4) Build backend, using the same version from bump-version
+  # 3) Build backend, using the same version from bump-version
   build-backend:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
@@ -130,7 +113,7 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG} -f backend/Dockerfile backend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG}
 
-  # 5) Build AI service, using the same version from bump-version
+  # 4) Build AI service, using the same version from bump-version
   build-ai-service:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
@@ -158,3 +141,46 @@ jobs:
           AI_SERVICE_TAG=${{ needs.bump-version.outputs.new_tag }}
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG} -f ai-service/Dockerfile ai-service/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG}
+
+  # 5) Handle manifest-only changes (always runs, regardless of code changes)
+  deploy-manifests:
+    if: github.actor == 'tsuki-yo'
+    runs-on: ubuntu-latest
+    needs: [test]  # Only needs tests to pass, not image builds
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Check for manifest changes
+        id: check-manifests
+        run: |
+          # Check if this push contains manifest changes
+          if git diff --name-only HEAD~1 HEAD | grep -E '^infra/k8s/'; then
+            echo "manifest_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "manifest_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync manifest changes to deploy branch
+        if: steps.check-manifests.outputs.manifest_changes == 'true'
+        run: |
+          echo "Manifest changes detected, ensuring deploy branch is updated..."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Fetch deploy branch
+          git fetch origin deploy:deploy || echo "Deploy branch may not exist yet"
+          
+          # Check if deploy branch is behind dev for manifests
+          git checkout deploy
+          git merge dev --no-ff -m "Deploy manifest changes from dev"
+          git push origin deploy
+
+      - name: Trigger ArgoCD sync (if manifest changes)
+        if: steps.check-manifests.outputs.manifest_changes == 'true'
+        run: |
+          echo "Manifest changes deployed to deploy branch"
+          echo "ArgoCD should automatically detect and sync these changes"

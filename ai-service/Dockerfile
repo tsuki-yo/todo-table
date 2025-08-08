@@ -14,10 +14,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Download spaCy model (this installs globally and links to user directory)
+# Download spaCy models (this installs globally and links to user directory)
 RUN python -m spacy download ja_core_news_sm
-# Create link for user directory access
+RUN python -m spacy download en_core_web_sm
+# Create links for user directory access
 RUN python -c "import spacy; spacy.cli.link('ja_core_news_sm', 'ja_core_news_sm', force=True, user=False)"
+RUN python -c "import spacy; spacy.cli.link('en_core_web_sm', 'en_core_web_sm', force=True, user=False)"
 
 # Production stage
 FROM python:3.11-slim

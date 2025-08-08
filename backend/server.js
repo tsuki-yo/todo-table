@@ -76,17 +76,18 @@ app.get("/tasks", async (req, res) => {
 // PUT endpoint: update a task
 app.put("/tasks/:id", async (req, res) => {
   const { id } = req.params;
-  const { task, dueDate } = req.body;
+  const { task, dueDate, completed } = req.body;
   const userId = req.user.sub;
 
   const params = {
     TableName: TABLE_NAME,
     Key: { userId, id },
-    UpdateExpression: "set #t = :t, dueDate = :d",
+    UpdateExpression: "set #t = :t, dueDate = :d, completed = :c",
     ExpressionAttributeNames: { "#t": "task" },
     ExpressionAttributeValues: {
       ":t": task,
       ":d": dueDate,
+      ":c": completed || false,
     },
     ReturnValues: "ALL_NEW",
   };
@@ -114,7 +115,7 @@ app.post("/tasks/process", async (req, res) => {
     let processedTask;
     try {
       console.log("🔍 Calling AI service with input:", input);
-      const aiResponse = await axios.post('http://localhost:3003/analyze', {
+      const aiResponse = await axios.post('http://ai-service:3003/analyze', {
         text: input
       }, {
         timeout: 5000
@@ -136,6 +137,18 @@ app.post("/tasks/process", async (req, res) => {
         dueDate: "",
         priority: "medium"
       };
+    }
+
+    // Check if user is a guest user
+    if (req.user.isGuest) {
+      // For guest users, just return processed task without saving to database
+      res.status(200).json({ 
+        task: processedTask.task,
+        dueDate: processedTask.dueDate,
+        priority: processedTask.priority,
+        message: "Task processed successfully (guest mode)" 
+      });
+      return;
     }
 
     // Find the first available slot (empty task) in the user's tasks

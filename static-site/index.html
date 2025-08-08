@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App - Currently Unavailable</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
+            margin: 2rem;
+        }
+        
+        .clock-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .schedule {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .schedule h2 {
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .time-info {
+            font-size: 1.1rem;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .current-time {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #edf2f7;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #4a5568;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+        
+        .status.offline {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .status.online {
+            background: #c6f6d5;
+            color: #38a169;
+        }
+        
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .clock-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="clock-icon">🕘</div>
+        <h1>Todo App</h1>
+        <div class="status" id="status">Checking availability...</div>
+        
+        <div class="schedule">
+            <h2>📅 Service Hours</h2>
+            <div class="time-info">9:00 AM - 6:00 PM JST</div>
+            <div style="color: #4a5568;">Monday through Friday</div>
+            <div class="current-time">
+                Current time in Japan: <span id="current-time">Loading...</span>
+            </div>
+        </div>
+        
+        <p id="message">This cost-optimized infrastructure automatically provisions resources during business hours to save on cloud costs.</p>
+        
+        <div class="footer">
+            The application will be automatically available during service hours.<br>
+            Thank you for your understanding! 🙏
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const jstTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+            const timeString = jstTime.toLocaleString('en-JP', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Tokyo'
+            });
+            
+            document.getElementById('current-time').textContent = timeString;
+            
+            // Check if within service hours (9AM-6PM JST, Monday-Friday)
+            const dayOfWeek = jstTime.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+            const hour = jstTime.getHours();
+            
+            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+            const isServiceHours = hour >= 9 && hour < 18;
+            const isAvailable = isWeekday && isServiceHours;
+            
+            const statusElement = document.getElementById('status');
+            const messageElement = document.getElementById('message');
+            
+            if (isAvailable) {
+                statusElement.textContent = '🟢 Currently Available';
+                statusElement.className = 'status online';
+                messageElement.innerHTML = 'The Todo App should be available now!<br><a href="/" style="color: #667eea; text-decoration: none;">Click here to access the application →</a>';
+            } else {
+                statusElement.textContent = '🔴 Currently Offline';
+                statusElement.className = 'status offline';
+                
+                if (!isWeekday) {
+                    messageElement.textContent = 'The Todo App is only available on weekdays (Monday-Friday).';
+                } else if (hour < 9) {
+                    messageElement.textContent = 'The Todo App will be available starting at 9:00 AM JST.';
+                } else {
+                    messageElement.textContent = 'The Todo App service hours have ended for today. It will be available again tomorrow at 9:00 AM JST.';
+                }
+            }
+        }
+        
+        // Update time immediately and then every second
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
