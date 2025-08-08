@@ -38,8 +38,35 @@ spec:
                 name: frontend-service
                 port:
                   number: 80
+    - host: internal-app.natsuki-cloud.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
+          - path: /tasks
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 3002
+          - path: /callback
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 80
                   
   tls:
     - hosts:
         - todo-app.natsuki-cloud.dev
       secretName: todo-app-natsuki-cloud-dev
+    - hosts:
+        - internal-app.natsuki-cloud.dev
+      secretName: internal-app-natsuki-cloud-dev

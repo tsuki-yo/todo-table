@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backend-sa
+  namespace: todo-app
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::476114111588:role/prod-todo-app-irsa-role

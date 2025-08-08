@@ -1,0 +1,122 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sre-golden-signals-alerts
+  namespace: monitoring
+  labels:
+    prometheus: devops
+    role: alert-rules
+spec:
+  groups:
+  - name: sre.golden-signals
+    rules:
+    
+    # 🚦 LATENCY ALERTS
+    - alert: AIServiceHighLatency
+      expr: histogram_quantile(0.95, rate(ai_service_request_duration_seconds_bucket[5m])) > 0.5
+      for: 2m
+      labels:
+        severity: warning
+        slo: latency
+        service: ai-service
+      annotations:
+        summary: "AI Service p95 latency is high"
+        description: "AI service p95 latency is {{ $value }}s, exceeding 500ms threshold for 2+ minutes"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/wiki/runbooks/ai-service-latency"
+        
+    - alert: AIServiceCriticalLatency  
+      expr: histogram_quantile(0.95, rate(ai_service_request_duration_seconds_bucket[5m])) > 1.0
+      for: 1m
+      labels:
+        severity: critical
+        slo: latency
+        service: ai-service
+      annotations:
+        summary: "AI Service p95 latency is critically high"
+        description: "AI service p95 latency is {{ $value }}s, exceeding 1s critical threshold"
+        
+    # ❌ ERROR RATE ALERTS  
+    - alert: AIServiceHighErrorRate
+      expr: (rate(ai_service_requests_total{status!~"2.."}[5m]) / rate(ai_service_requests_total[5m])) * 100 > 1
+      for: 2m
+      labels:
+        severity: warning
+        slo: availability
+        service: ai-service
+      annotations:
+        summary: "AI Service error rate is high"
+        description: "AI service error rate is {{ $value }}%, exceeding 1% threshold for 2+ minutes"
+        
+    - alert: AIServiceCriticalErrorRate
+      expr: (rate(ai_service_requests_total{status!~"2.."}[5m]) / rate(ai_service_requests_total[5m])) * 100 > 5
+      for: 1m  
+      labels:
+        severity: critical
+        slo: availability
+        service: ai-service
+      annotations:
+        summary: "AI Service error rate is critically high"
+        description: "AI service error rate is {{ $value }}%, exceeding 5% critical threshold"
+        
+    # 🌡️ SATURATION ALERTS
+    - alert: AIServiceHighConcurrency
+      expr: ai_service_active_requests > 10
+      for: 5m
+      labels:
+        severity: warning
+        slo: saturation
+        service: ai-service
+      annotations:
+        summary: "AI Service has high concurrent requests"
+        description: "AI service has {{ $value }} active requests, may indicate performance issues"
+        
+    - alert: AIServiceSpacyModelDown
+      expr: ai_service_spacy_model_loaded == 0
+      for: 0m
+      labels:
+        severity: critical
+        slo: availability
+        service: ai-service
+      annotations:
+        summary: "AI Service SpaCy model failed to load"
+        description: "SpaCy model {{ $labels.model }} for {{ $labels.language }} failed to load"
+        
+    # 📊 TRAFFIC ALERTS (Business Impact)
+    - alert: AIServiceNoTraffic
+      expr: rate(ai_service_requests_total[10m]) == 0
+      for: 5m
+      labels:
+        severity: warning
+        slo: traffic
+        service: ai-service
+      annotations:
+        summary: "AI Service receiving no traffic"
+        description: "AI service has received no requests in the last 10 minutes"
+        
+  - name: sre.error-budget
+    rules:
+    
+    # SLO: 99.9% availability (43.2 minutes downtime per month)
+    - alert: AIServiceErrorBudgetBurn
+      expr: (1 - (rate(ai_service_requests_total{status=~"2.."}[1h]) / rate(ai_service_requests_total[1h]))) * 100 > 0.1
+      for: 0m
+      labels:
+        severity: warning
+        slo: error-budget
+        service: ai-service
+      annotations:
+        summary: "AI Service burning error budget"
+        description: "Current error rate {{ $value }}% is consuming error budget faster than sustainable"
+        
+    # SLO: p95 latency < 200ms  
+    - alert: AIServiceLatencySLOViolation
+      expr: histogram_quantile(0.95, rate(ai_service_request_duration_seconds_bucket[5m])) > 0.2
+      for: 2m
+      labels:
+        severity: warning
+        slo: latency-slo
+        service: ai-service
+      annotations:
+        summary: "AI Service violating latency SLO"
+        description: "p95 latency {{ $value }}s exceeds 200ms SLO target"

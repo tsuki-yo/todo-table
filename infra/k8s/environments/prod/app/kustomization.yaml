@@ -1,0 +1,12 @@
+replicas:
+- name: todo-frontend
+  count: 3
+- name: todo-backend
+  count: 3
+- name: todo-ai-service
+  count: 2
+resources:
+- ../../../app-base
+patchesStrategicMerge:
+- ingress-patch.yaml
+- backend-sa-patch.yaml
