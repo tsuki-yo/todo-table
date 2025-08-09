@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: todo-app-natsuki-cloud-dev
+  namespace: todo-app
+spec:
+  secretName: todo-app-natsuki-cloud-dev
+  issuerRef:
+    name: dns-01-production
+    kind: ClusterIssuer
+  dnsNames:
+  - todo-app.natsuki-cloud.dev
