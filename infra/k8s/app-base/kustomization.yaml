@@ -16,7 +16,9 @@ resources:
   - horizontal-runner-autoscaler.yaml
   - ingress.yaml
   - internal-app-certificate.yaml
+  - todo-app-certificate.yaml
   - cluster-issuer.yaml
+  - dns-01-cluster-issuer.yaml
   - sealed-repo-secret.yaml
   - sealed-github-app-secret.yaml
   - runner-deployment.yaml
