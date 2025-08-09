@@ -8,10 +8,21 @@ from datetime import datetime, timedelta
 import dateparser
 import pytz
 from dotenv import load_dotenv
+from prometheus_fastapi_instrumentator import Instrumentator
 
 load_dotenv()
 
 app = FastAPI(title="Todo AI Service", description="Japanese NLP service for todo task processing", version="1.0.0")
+
+# Initialize Prometheus metrics
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/metrics"],
+    inprogress_name="todo_ai_service_requests_inprogress",
+    inprogress_labels=True,
+).instrument(app)
 
 # CORS middleware
 app.add_middleware(
@@ -258,6 +269,10 @@ def extract_clean_task(text: str, extracted_date: str, doc) -> str:
             task_text = "".join(nouns)
     
     return task_text
+
+@app.on_event("startup")
+async def startup():
+    instrumentator.expose(app, endpoint="/metrics")
 
 if __name__ == "__main__":
     import uvicorn

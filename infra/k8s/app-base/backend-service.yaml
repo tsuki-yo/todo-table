@@ -3,10 +3,13 @@ kind: Service
 metadata:
   name: backend-service
   namespace: todo-app
+  labels:
+    app: backend
 spec:
   selector:
     app: todo-backend
   ports:
-    - port: 3002
+    - name: http
+      port: 3002
       targetPort: 3002
   type: ClusterIP
