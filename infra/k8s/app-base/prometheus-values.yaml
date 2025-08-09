@@ -1,0 +1,66 @@
+grafana:
+  adminPassword: "admin"  # Change this in production
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: ebs-sc
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: ebs-sc
+          resources:
+            requests:
+              storage: 8Gi
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 200m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: ebs-sc
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+
+# Disable unnecessary components
+kubeEtcd:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+# Enable service monitors for your applications
+serviceMonitorSelectorNilUsesHelmValues: false
+serviceMonitorSelector: {}
+serviceMonitorNamespaceSelector: {}
+
+# Add common labels for better organization
+commonLabels:
+  prometheus: devops 

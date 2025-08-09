@@ -1,0 +1,86 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: golden-signals-slo-alerts
+  namespace: monitoring
+  labels:
+    prometheus: devops
+    role: alert-rules
+spec:
+  groups:
+  - name: golden_signals_slo
+    rules:
+    # Latency SLO: 95% of requests should complete within 500ms
+    - alert: HighLatency
+      expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~".*todo.*"}[5m])) by (le, service)) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        golden_signal: latency
+      annotations:
+        summary: "High latency detected for {{ $labels.service }}"
+        description: "95th percentile latency is {{ $value }}s, which exceeds our SLO of 500ms"
+        
+    # Traffic SLO: Monitor for unusual traffic patterns  
+    - alert: LowTraffic
+      expr: sum(rate(http_requests_total{job=~".*todo.*"}[5m])) by (service) < 0.1
+      for: 10m
+      labels:
+        severity: info
+        golden_signal: traffic
+      annotations:
+        summary: "Low traffic detected for {{ $labels.service }}"
+        description: "Request rate is {{ $value }} req/s, which may indicate an issue"
+        
+    - alert: HighTraffic
+      expr: sum(rate(http_requests_total{job=~".*todo.*"}[5m])) by (service) > 100
+      for: 5m
+      labels:
+        severity: warning
+        golden_signal: traffic
+      annotations:
+        summary: "High traffic detected for {{ $labels.service }}"
+        description: "Request rate is {{ $value }} req/s, which may overwhelm the service"
+        
+    # Error SLO: Error rate should be below 1%
+    - alert: HighErrorRate
+      expr: (sum(rate(http_requests_total{job=~".*todo.*",code!~"2.."}[5m])) by (service) / sum(rate(http_requests_total{job=~".*todo.*"}[5m])) by (service) * 100) > 1
+      for: 5m
+      labels:
+        severity: critical
+        golden_signal: errors
+      annotations:
+        summary: "High error rate detected for {{ $labels.service }}"
+        description: "Error rate is {{ $value }}%, which exceeds our SLO of 1%"
+        
+    # Saturation SLO: CPU and Memory usage should stay below 80%
+    - alert: HighCPUUsage
+      expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 10m
+      labels:
+        severity: warning
+        golden_signal: saturation
+      annotations:
+        summary: "High CPU usage on {{ $labels.instance }}"
+        description: "CPU usage is {{ $value }}%, which exceeds our SLO of 80%"
+        
+    - alert: HighMemoryUsage
+      expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+      for: 10m
+      labels:
+        severity: warning
+        golden_signal: saturation
+      annotations:
+        summary: "High memory usage on {{ $labels.instance }}"
+        description: "Memory usage is {{ $value }}%, which exceeds our SLO of 80%"
+        
+    # Service Level Objective (SLO) burn rate alerts
+    - alert: ErrorBudgetBurnRateHigh
+      expr: (sum(rate(http_requests_total{job=~".*todo.*",code!~"2.."}[1h])) by (service) / sum(rate(http_requests_total{job=~".*todo.*"}[1h])) by (service) * 100) > 5
+      for: 15m
+      labels:
+        severity: critical
+        golden_signal: slo_burn_rate
+      annotations:
+        summary: "High error budget burn rate for {{ $labels.service }}"
+        description: "Error budget is burning at {{ $value }}% per hour, 5x faster than sustainable rate"

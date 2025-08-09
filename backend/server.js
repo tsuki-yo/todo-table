@@ -3,10 +3,55 @@ const cors = require("cors");
 const AWS = require("aws-sdk");
 const axios = require("axios");
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
+const client = require('prom-client');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Prometheus metrics setup
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
+// Custom metrics for Golden Signals
+const httpRequestDuration = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code', 'service'],
+  buckets: [0.1, 0.5, 1, 2, 5]
+});
+
+const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code', 'service']
+});
+
+// Middleware to collect metrics
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    const route = req.route?.path || req.path;
+    
+    httpRequestDuration
+      .labels(req.method, route, res.statusCode, 'todo-backend')
+      .observe(duration);
+      
+    httpRequestsTotal
+      .labels(req.method, route, res.statusCode, 'todo-backend')
+      .inc();
+  });
+  
+  next();
+});
+
+// Metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 // Configure AWS SDK (IRSA is used for my pod's AWS credentials)
 AWS.config.update({
