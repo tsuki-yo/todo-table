@@ -17,13 +17,13 @@ replicas:
 images:
 - name: todo-frontend
   newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
-  newTag: latest  # Will be updated by promotion workflow
+  newTag: 0.1.80
 - name: todo-backend
   newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
-  newTag: latest  # Will be updated by promotion workflow
+  newTag: 0.1.80
 - name: todo-ai-service
   newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
-  newTag: latest  # Will be updated by promotion workflow
+  newTag: 0.1.80
 
 patches:
 - target:
