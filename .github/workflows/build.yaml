@@ -37,11 +37,57 @@ jobs:
           cd frontend
           npm run test:ci
 
-  # 1) Bump version in a single job, store it as output
-  bump-version:
+  # 1) Check for application code changes and bump version if needed
+  check-changes:
     if: github.actor == 'tsuki-yo'
     runs-on: ubuntu-latest
     needs: [test]
+    outputs:
+      has_code_changes: ${{ steps.check-code.outputs.has_code_changes }}
+      has_frontend_changes: ${{ steps.check-code.outputs.has_frontend_changes }}
+      has_backend_changes: ${{ steps.check-code.outputs.has_backend_changes }}
+      has_ai_changes: ${{ steps.check-code.outputs.has_ai_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+          fetch-depth: 2
+
+      - name: Check for code changes
+        id: check-code
+        run: |
+          # Check if any application code changed
+          if git diff --name-only HEAD~1 HEAD | grep -E '^(frontend/|backend/|ai-service/)'; then
+            echo "has_code_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_code_changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check individual services
+          if git diff --name-only HEAD~1 HEAD | grep '^frontend/'; then
+            echo "has_frontend_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_frontend_changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if git diff --name-only HEAD~1 HEAD | grep '^backend/'; then
+            echo "has_backend_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_backend_changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if git diff --name-only HEAD~1 HEAD | grep '^ai-service/'; then
+            echo "has_ai_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_ai_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+  # 2) Bump version only if code changed
+  bump-version:
+    if: github.actor == 'tsuki-yo' && needs.check-changes.outputs.has_code_changes == 'true'
+    runs-on: ubuntu-latest
+    needs: [check-changes]
     outputs:
       new_tag: ${{ steps.increment-git-tag.outputs.new_tag }}
     steps:
@@ -55,11 +101,11 @@ jobs:
         run: |
           bash ./.github/script/git_update.sh -v patch
 
-  # 2) Build frontend, using the single version from bump-version
+  # 3) Build frontend only if frontend code changed
   build-frontend:
-    if: github.actor == 'tsuki-yo'
+    if: github.actor == 'tsuki-yo' && needs.check-changes.outputs.has_frontend_changes == 'true'
     runs-on: ubuntu-latest
-    needs: [bump-version]
+    needs: [check-changes, bump-version]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -84,11 +130,11 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG} -f frontend/Dockerfile frontend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-frontend:${FRONTEND_TAG}
 
-  # 3) Build backend, using the same version from bump-version
+  # 4) Build backend only if backend code changed
   build-backend:
-    if: github.actor == 'tsuki-yo'
+    if: github.actor == 'tsuki-yo' && needs.check-changes.outputs.has_backend_changes == 'true'
     runs-on: ubuntu-latest
-    needs: [bump-version]
+    needs: [check-changes, bump-version]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -113,11 +159,11 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG} -f backend/Dockerfile backend/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-backend:${BACKEND_TAG}
 
-  # 4) Build AI service, using the same version from bump-version
+  # 5) Build AI service only if AI service code changed
   build-ai-service:
-    if: github.actor == 'tsuki-yo'
+    if: github.actor == 'tsuki-yo' && needs.check-changes.outputs.has_ai_changes == 'true'
     runs-on: ubuntu-latest
-    needs: [bump-version]
+    needs: [check-changes, bump-version]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -142,11 +188,11 @@ jobs:
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG} -f ai-service/Dockerfile ai-service/
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/todo-ai-service:${AI_SERVICE_TAG}
 
-  # 5) Handle manifest-only changes (always runs, regardless of code changes)
+  # 6) Handle manifest-only changes (always runs, regardless of code changes)
   deploy-manifests:
-    if: github.actor == 'tsuki-yo'
+    if: github.actor == 'tsuki-yo' && always()
     runs-on: ubuntu-latest
-    needs: [test]  # Only needs tests to pass, not image builds
+    needs: [test, check-changes, bump-version]  # Need bump-version for tag updates
     steps:
       - name: Checkout dev
         uses: actions/checkout@v2
@@ -165,7 +211,7 @@ jobs:
           fi
 
       - name: Update staging image tags
-        if: needs.bump-version.outputs.new_tag != ''
+        if: needs.check-changes.outputs.has_code_changes == 'true' && needs.bump-version.result == 'success'
         run: |
           TAG=${{ needs.bump-version.outputs.new_tag }}
           echo "Updating staging manifests to use tag: $TAG"
