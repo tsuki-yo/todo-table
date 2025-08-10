@@ -22,3 +22,10 @@ resources:
   - sealed-repo-secret.yaml
   - sealed-github-app-secret.yaml
   - runner-deployment.yaml
+  - grafana-ingress.yaml
+  - grafana-auth-secret.yaml
+  - prometheus-ingress.yaml
+  - prometheus-auth-secret.yaml
+  - alertmanager-ingress.yaml
+  - alertmanager-auth-secret.yaml
+  - argocd-ingress.yaml
