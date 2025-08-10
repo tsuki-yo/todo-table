@@ -15,10 +15,6 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
     nginx.ingress.kubernetes.io/grpc-backend: "true"
     nginx.ingress.kubernetes.io/server-snippet: |
-      # Require CloudFront header for access
-      if ($http_x_cloudfront_access != "cloudfront-origin-access-2025") {
-        return 403;
-      }
       grpc_read_timeout 300;
       grpc_send_timeout 300;
       client_body_timeout 60;
