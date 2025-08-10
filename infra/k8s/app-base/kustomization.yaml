@@ -34,3 +34,4 @@ resources:
   - sre-runbooks.yaml
   - blackbox-exporter.yaml
   - sre-dashboard.json
+  - sre-dashboard-simple.json
