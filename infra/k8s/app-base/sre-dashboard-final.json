@@ -1,0 +1,210 @@
+{
+  "id": null,
+  "title": "SRE Dashboard - Production Architecture",
+  "tags": ["sre", "slo", "production"],
+  "style": "dark",
+  "timezone": "browser", 
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "API Services Availability (Internal)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"backend-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "Backend API",
+          "refId": "A"
+        },
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"ai-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "AI Service API",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 95,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 99},
+              {"color": "yellow", "value": 99.5},
+              {"color": "green", "value": 99.9}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "External Frontend Monitoring (User-Facing)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "probe_success{instance=\"https://todo-app.natsuki-cloud.dev\"}",
+          "legendFormat": "Frontend Available",
+          "refId": "A"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"https://todo-app.natsuki-cloud.dev\"}",
+          "legendFormat": "Page Load Time",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {"options": {"0": {"text": "❌ DOWN"}}, "type": "value"},
+            {"options": {"1": {"text": "✅ UP"}}, "type": "value"}
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Page Load Time"},
+            "properties": [
+              {"id": "unit", "value": "s"},
+              {"id": "mappings", "value": []},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "green", "value": 0},
+                  {"color": "yellow", "value": 1},
+                  {"color": "red", "value": 3}
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "id": 3,
+      "title": "API Traffic Rate (Backend Services)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{service=\"backend-service\"}[5m])",
+          "legendFormat": "Backend - {{method}} {{status_code}}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_requests_total{service=\"ai-service\"}[5m])",
+          "legendFormat": "AI Service - {{method}} {{status}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 4,
+      "title": "User-Facing Response Times",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "probe_duration_seconds{instance=\"https://todo-app.natsuki-cloud.dev\"}",
+          "legendFormat": "Frontend (via CloudFront)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-service\"}[5m]))",
+          "legendFormat": "Backend API p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service API p95",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 3}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 5,
+      "title": "SLO Targets vs Current Performance",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "probe_success{job=\"blackbox-external-targets\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "Time": true,
+              "job": true
+            },
+            "renameByName": {
+              "instance": "Service Endpoint",
+              "Value": "Status (1=UP, 0=DOWN)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "table"
+          },
+          "mappings": [
+            {"options": {"0": {"text": "❌ DOWN", "color": "red"}}, "type": "value"},
+            {"options": {"1": {"text": "✅ UP", "color": "green"}}, "type": "value"}
+          ]
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 14}
+    },
+    {
+      "id": 6,
+      "title": "Architecture Note",
+      "type": "text",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 14},
+      "options": {
+        "content": "## Production Architecture\n\n**Frontend**: React SPA served via CloudFront CDN\n- External monitoring via Blackbox Exporter\n- Most requests served by CloudFront edge cache\n- Origin (nginx) sees minimal traffic\n\n**Backend APIs**: Direct container monitoring\n- Internal Prometheus instrumentation\n- Real request/response metrics\n\n**SLO Targets**:\n- Frontend: <2s page load, 99.9% availability\n- Backend: <200ms API, 99.95% availability  \n- AI Service: <2s processing, 99.5% availability"
+      }
+    }
+  ]
+}

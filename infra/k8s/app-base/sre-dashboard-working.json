@@ -1,0 +1,261 @@
+{
+  "id": null,
+  "title": "SRE Dashboard - Working Error Budgets & Burn Rates",
+  "tags": ["sre", "error-budget", "working"],
+  "style": "dark",
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "🎯 Current SLO Compliance",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"backend-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "Backend (Target: 99.95%)",
+          "refId": "A"
+        },
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"ai-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "AI Service (Target: 99.5%)",
+          "refId": "B"
+        },
+        {
+          "expr": "probe_success{instance=\"https://todo-app.natsuki-cloud.dev\"} * 100",
+          "legendFormat": "Frontend (Target: 99.9%)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 99,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 99},
+              {"color": "yellow", "value": 99.5},
+              {"color": "green", "value": 99.9}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "💰 Error Budget Status (Simplified)",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "100 - ((rate(http_requests_total{service=\"backend-service\",status_code=~\"5..\"}[5m]) / rate(http_requests_total{service=\"backend-service\"}[5m])) * 100 * 2000)",
+          "legendFormat": "Backend Budget (99.95% SLO)",
+          "refId": "A"
+        },
+        {
+          "expr": "100 - ((rate(http_requests_total{service=\"ai-service\",status=~\"5..\"}[5m]) / rate(http_requests_total{service=\"ai-service\"}[5m])) * 100 * 200)",
+          "legendFormat": "AI Service Budget (99.5% SLO)",
+          "refId": "B"
+        },
+        {
+          "expr": "probe_success{instance=\"https://todo-app.natsuki-cloud.dev\"} * 100",
+          "legendFormat": "Frontend Budget (99.9% SLO)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "yellow", "value": 50},
+              {"color": "green", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 3,
+      "title": "🔥 Current Error Rate (Burn Rate Indicator)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(rate(http_requests_total{service=\"backend-service\",status_code=~\"5..\"}[5m]) / rate(http_requests_total{service=\"backend-service\"}[5m])) * 100",
+          "legendFormat": "Backend Error Rate % (Budget: 0.05%)",
+          "refId": "A"
+        },
+        {
+          "expr": "(rate(http_requests_total{service=\"ai-service\",status=~\"5..\"}[5m]) / rate(http_requests_total{service=\"ai-service\"}[5m])) * 100",
+          "legendFormat": "AI Service Error Rate % (Budget: 0.5%)",
+          "refId": "B"
+        },
+        {
+          "expr": "(1 - probe_success{instance=\"https://todo-app.natsuki-cloud.dev\"}) * 100",
+          "legendFormat": "Frontend Failure Rate % (Budget: 0.1%)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 0.1},
+              {"color": "red", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 4,
+      "title": "📊 Traffic vs Error Correlation",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service=\"backend-service\"}[5m]))",
+          "legendFormat": "Backend Request Rate",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service Request Rate",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{service=\"backend-service\",status_code=~\"5..\"}[5m])) * 1000",
+          "legendFormat": "Backend Error Rate (x1000)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byRegex", "options": "/.*Error.*/"}, 
+            "properties": [
+              {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14}
+    },
+    {
+      "id": 5,
+      "title": "⚡ Latency vs SLO Targets",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-service\"}[5m])) * 1000",
+          "legendFormat": "Backend p95 (Target: <200ms)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service p95 (Target: <2s)",
+          "refId": "B"
+        },
+        {
+          "expr": "probe_duration_seconds{instance=\"https://todo-app.natsuki-cloud.dev\"}",
+          "legendFormat": "Frontend Load Time (Target: <2s)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Backend p95 (Target: <200ms)"}, 
+            "properties": [
+              {"id": "unit", "value": "ms"},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "green", "value": 0},
+                  {"color": "yellow", "value": 150},
+                  {"color": "red", "value": 200}
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": {"id": "byRegex", "options": "/.*AI Service.*|.*Frontend.*/"}, 
+            "properties": [
+              {"id": "unit", "value": "s"},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "green", "value": 0},
+                  {"color": "yellow", "value": 1.5},
+                  {"color": "red", "value": 2}
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14}
+    },
+    {
+      "id": 6,
+      "title": "🚨 SRE Alert Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "legendFormat": "{{alertname}} - {{severity}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {"options": {"0": {"text": "✅ No Active Alerts"}}, "type": "value"}
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 2}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 22}
+    },
+    {
+      "id": 7,
+      "title": "📈 Error Budget Explanation",
+      "type": "text",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 22},
+      "options": {
+        "content": "## 💰 Error Budget Concepts\n\n### Current Status:\n- **Backend**: 99.95% SLO = 21.6 min/month downtime budget\n- **AI Service**: 99.5% SLO = 3.6 hours/month downtime budget  \n- **Frontend**: 99.9% SLO = 43.2 min/month downtime budget\n\n### 🔥 Burn Rate Interpretation:\n- **Normal**: Error rate << SLO threshold\n- **Warning**: Error rate approaching SLO limits\n- **Critical**: Error rate >> SLO, burning budget fast\n\n### 📊 Current Metrics:\n- **Green gauges**: Budget intact, system healthy\n- **Yellow/Red**: Budget being consumed, investigate\n- **Error correlation**: Higher traffic = potential issues"
+      }
+    }
+  ]
+}

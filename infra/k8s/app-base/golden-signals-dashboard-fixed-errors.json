@@ -1,0 +1,196 @@
+{
+  "id": null,
+  "title": "Golden Signals - Todo App (Fixed Errors)",
+  "tags": ["golden-signals", "sre"],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Traffic - Request Rate by Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"todo-app\"}[5m])) by (job)",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "${__field.labels.job}",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["last", "max"]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Latency - Response Time by Service (95th percentile)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"todo-app\"}[5m])) by (le, job)) * 1000",
+          "legendFormat": "{{job}} - 95th percentile",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{namespace=\"todo-app\"}[5m])) by (le, job)) * 1000", 
+          "legendFormat": "{{job}} - 50th percentile",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["last", "max"]
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Errors - Error Rate by Service (Fixed)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(sum(rate(http_requests_total{namespace=\"todo-app\",job=\"backend-service\",status_code!~\"2..\"}[5m])) or vector(0)) / sum(rate(http_requests_total{namespace=\"todo-app\",job=\"backend-service\"}[5m])) * 100",
+          "legendFormat": "backend-service error rate",
+          "refId": "A"
+        },
+        {
+          "expr": "(sum(rate(http_requests_total{namespace=\"todo-app\",job=\"ai-service\",status!~\"2..\"}[5m])) or vector(0)) / sum(rate(http_requests_total{namespace=\"todo-app\",job=\"ai-service\"}[5m])) * 100",
+          "legendFormat": "ai-service error rate", 
+          "refId": "B"
+        },
+        {
+          "expr": "(sum(rate(http_requests_total{namespace=\"todo-app\",job=\"frontend-service\",status!~\"2..\"}[5m])) or vector(0)) / sum(rate(http_requests_total{namespace=\"todo-app\",job=\"frontend-service\"}[5m])) * 100",
+          "legendFormat": "frontend-service error rate",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 5}
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["last", "max"]
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Request Volume by Service (Total Requests)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(http_requests_total{namespace=\"todo-app\"}) by (job)",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "${__field.labels.job}",
+          "custom": {
+            "displayMode": "list",
+            "orientation": "horizontal"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Current Request Rate Summary",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{namespace=\"todo-app\"}[5m])) by (job)",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 16},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "${__field.labels.job}",
+          "custom": {
+            "displayMode": "list",
+            "orientation": "horizontal"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name"
+      }
+    }
+  ],
+  "time": {"from": "now-15m", "to": "now"},
+  "refresh": "10s"
+}

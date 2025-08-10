@@ -3,10 +3,13 @@ kind: Service
 metadata:
   name: ai-service
   namespace: todo-app
+  labels:
+    app: ai-service
 spec:
   selector:
     app: todo-ai-service
   ports:
-    - port: 3003
+    - name: http
+      port: 3003
       targetPort: 3003
   type: ClusterIP

@@ -1,0 +1,217 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sre-runbooks
+  namespace: monitoring
+data:
+  high-error-rate.md: |
+    # Runbook: High Error Rate Alert
+    
+    ## Alert Description
+    This alert fires when a service is experiencing a high error rate that threatens to exhaust the monthly error budget.
+    
+    ## Impact
+    - **Critical**: Error budget burn rate > 14.4x (exhausts budget in 2 hours)
+    - **Warning**: Error budget burn rate > 6x (exhausts budget in 5 hours)
+    
+    ## Investigation Steps
+    
+    ### 1. Verify the Alert
+    ```bash
+    # Check current error rate
+    kubectl port-forward -n monitoring svc/prometheus-operator-kube-p-prometheus 9090:9090
+    # Navigate to: http://localhost:9090
+    # Query: rate(http_requests_total{status_code=~"5.."}[5m]) / rate(http_requests_total[5m])
+    ```
+    
+    ### 2. Check Service Health
+    ```bash
+    # Check pod status
+    kubectl get pods -n todo-app -l app=<service-name>
+    
+    # Check pod logs for errors
+    kubectl logs -n todo-app -l app=<service-name> --tail=50
+    
+    # Check resource usage
+    kubectl top pods -n todo-app
+    ```
+    
+    ### 3. Check Dependencies
+    ```bash
+    # Check database connectivity (if applicable)
+    kubectl exec -n todo-app <pod-name> -- curl -f http://database:5432/health
+    
+    # Check external API dependencies
+    kubectl exec -n todo-app <pod-name> -- curl -f https://external-api.com/health
+    ```
+    
+    ### 4. Quick Fixes
+    ```bash
+    # Restart failing pods
+    kubectl rollout restart deployment/<service-name> -n todo-app
+    
+    # Scale up replicas if under load
+    kubectl scale deployment/<service-name> --replicas=3 -n todo-app
+    
+    # Check HPA status
+    kubectl get hpa -n todo-app
+    ```
+    
+    ## Escalation
+    - If error rate doesn't improve within 10 minutes, escalate to senior SRE
+    - If multiple services affected, declare incident and engage incident commander
+    
+    ## Prevention
+    - Review deployment process for failed deployments
+    - Implement better health checks
+    - Add circuit breakers for external dependencies
+    
+  high-latency.md: |
+    # Runbook: High Latency Alert
+    
+    ## Alert Description
+    Service p95 latency is above SLO targets, impacting user experience.
+    
+    ## SLO Targets
+    - Frontend: < 500ms
+    - Backend: < 200ms  
+    - AI Service: < 2s
+    
+    ## Investigation Steps
+    
+    ### 1. Check Current Latency
+    ```bash
+    # Query p95 latency by service
+    # Prometheus query: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+    ```
+    
+    ### 2. Identify Bottlenecks
+    ```bash
+    # Check CPU and memory usage
+    kubectl top pods -n todo-app
+    
+    # Check for CPU throttling
+    kubectl describe pods -n todo-app | grep -A 5 -B 5 throttled
+    
+    # Check network latency to dependencies
+    kubectl exec -n todo-app <pod> -- ping database-host
+    ```
+    
+    ### 3. Performance Analysis
+    ```bash
+    # Check slow queries (if database involved)
+    kubectl logs -n todo-app <backend-pod> | grep "slow query"
+    
+    # Check for memory leaks
+    kubectl exec -n todo-app <pod> -- curl http://localhost:8080/metrics | grep memory
+    ```
+    
+    ### 4. Immediate Actions
+    ```bash
+    # Scale up resources
+    kubectl scale deployment/<service> --replicas=5 -n todo-app
+    
+    # Check and adjust resource limits
+    kubectl patch deployment <service> -n todo-app -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container>","resources":{"limits":{"cpu":"2","memory":"2Gi"}}}]}}}}'
+    ```
+    
+    ## Root Cause Categories
+    1. **Resource Constraints**: CPU/Memory limits too low
+    2. **Database Issues**: Slow queries, connection pooling
+    3. **External Dependencies**: Third-party API latency
+    4. **Code Issues**: Inefficient algorithms, memory leaks
+    
+  traffic-drop.md: |
+    # Runbook: Traffic Drop Alert
+    
+    ## Alert Description
+    Significant drop in application traffic compared to historical baselines.
+    
+    ## Investigation Steps
+    
+    ### 1. Verify Traffic Drop
+    ```bash
+    # Check current vs historical traffic
+    # Prometheus: rate(http_requests_total[5m]) vs rate(http_requests_total[1h] offset 1h)
+    ```
+    
+    ### 2. Check External Factors
+    ```bash
+    # Verify DNS resolution
+    nslookup todo-app.natsuki-cloud.dev
+    
+    # Check CloudFront/CDN status
+    curl -I https://todo-app.natsuki-cloud.dev
+    
+    # Test from external monitoring
+    curl -H "X-CloudFront-Access: cloudfront-origin-access-2025" https://todo-app.natsuki-cloud.dev
+    ```
+    
+    ### 3. Check Load Balancer
+    ```bash
+    # Check NLB target health
+    kubectl get ingress -n todo-app
+    kubectl describe ingress todo-ingress -n todo-app
+    ```
+    
+    ### 4. Internal Service Health
+    ```bash
+    # Verify services are running
+    kubectl get pods -n todo-app
+    kubectl get svc -n todo-app
+    
+    # Check service endpoints
+    kubectl get endpoints -n todo-app
+    ```
+    
+    ## Common Causes
+    1. **DNS Issues**: Domain not resolving
+    2. **Load Balancer**: Unhealthy targets
+    3. **Certificate Issues**: SSL/TLS problems
+    4. **Firewall Changes**: Security group modifications
+    5. **Planned Maintenance**: Scheduled downtime
+    
+  high-resource-usage.md: |
+    # Runbook: High Resource Usage Alert
+    
+    ## Alert Description
+    Pod resource usage (CPU/Memory) is approaching container limits (>80%).
+    
+    ## Investigation Steps
+    
+    ### 1. Check Resource Metrics
+    ```bash
+    # Current resource usage
+    kubectl top pods -n todo-app
+    
+    # Resource limits and requests
+    kubectl describe pods -n todo-app | grep -A 5 -B 5 Limits
+    ```
+    
+    ### 2. Analyze Usage Patterns
+    ```bash
+    # Check for memory leaks
+    kubectl exec -n todo-app <pod> -- cat /proc/meminfo
+    
+    # Check CPU usage over time in Grafana
+    # Query: rate(container_cpu_usage_seconds_total{pod="<pod-name>"}[5m])
+    ```
+    
+    ### 3. Immediate Actions
+    ```bash
+    # Scale horizontally if possible
+    kubectl scale deployment/<service> --replicas=3 -n todo-app
+    
+    # Increase resource limits (temporary)
+    kubectl patch deployment <service> -n todo-app -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container>","resources":{"limits":{"cpu":"1000m","memory":"1Gi"}}}]}}}}'
+    
+    # Restart pod to clear memory leaks
+    kubectl delete pod <pod-name> -n todo-app
+    ```
+    
+    ### 4. Long-term Solutions
+    1. **Right-sizing**: Adjust resource requests/limits based on actual usage
+    2. **Optimization**: Profile application for memory/CPU optimization
+    3. **Auto-scaling**: Implement HPA based on CPU/memory metrics
+    4. **Monitoring**: Set up better resource utilization dashboards

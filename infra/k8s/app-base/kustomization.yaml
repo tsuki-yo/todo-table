@@ -15,7 +15,21 @@ resources:
   - backend-hpa.yaml
   - horizontal-runner-autoscaler.yaml
   - ingress.yaml
+  - internal-app-certificate.yaml
+  - todo-app-certificate.yaml
   - cluster-issuer.yaml
+  - dns-01-cluster-issuer.yaml
   - sealed-repo-secret.yaml
   - sealed-github-app-secret.yaml
   - runner-deployment.yaml
+  - grafana-ingress.yaml
+  - grafana-auth-secret.yaml
+  - prometheus-ingress.yaml
+  - prometheus-auth-secret.yaml
+  - alertmanager-ingress.yaml
+  - alertmanager-auth-secret.yaml
+  - argocd-ingress.yaml
+  - sre-slis-slos.yaml
+  - sre-alert-rules.yaml
+  - sre-runbooks.yaml
+  - blackbox-exporter.yaml

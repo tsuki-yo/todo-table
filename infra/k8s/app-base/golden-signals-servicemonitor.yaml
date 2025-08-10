@@ -1,0 +1,62 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-app-golden-signals
+  namespace: monitoring
+  labels:
+    app: todo-app
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  namespaceSelector:
+    matchNames:
+    - todo-app
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-app-backend-golden-signals
+  namespace: monitoring
+  labels:
+    app: todo-app
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  namespaceSelector:
+    matchNames:
+    - todo-app
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-app-ai-service-golden-signals
+  namespace: monitoring
+  labels:
+    app: todo-app
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: ai-service
+  namespaceSelector:
+    matchNames:
+    - todo-app
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
