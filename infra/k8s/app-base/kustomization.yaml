@@ -29,3 +29,8 @@ resources:
   - alertmanager-ingress.yaml
   - alertmanager-auth-secret.yaml
   - argocd-ingress.yaml
+  - sre-slis-slos.yaml
+  - sre-alert-rules.yaml
+  - sre-runbooks.yaml
+  - blackbox-exporter.yaml
+  - sre-dashboard.json

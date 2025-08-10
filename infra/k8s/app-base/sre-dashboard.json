@@ -1,0 +1,295 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "SRE Overview - SLIs, SLOs & Error Budgets",
+    "tags": ["sre", "slo", "error-budget"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "SLO Compliance Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(rate(http_requests_total{service=\"frontend-service\",status!~\"5..\"}[30d]) / rate(http_requests_total{service=\"frontend-service\"}[30d]) * 100)",
+            "legendFormat": "Frontend Availability",
+            "refId": "A"
+          },
+          {
+            "expr": "(rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[30d]) / rate(http_requests_total{service=\"backend-service\"}[30d]) * 100)",
+            "legendFormat": "Backend Availability",
+            "refId": "B"
+          },
+          {
+            "expr": "(rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[30d]) / rate(http_requests_total{service=\"ai-service\"}[30d]) * 100)",
+            "legendFormat": "AI Service Availability",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 99,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 99.5},
+                {"color": "green", "value": 99.9}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Error Budget Burn Rate (28-day window)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "((1 - (rate(http_requests_total{service=\"frontend-service\",status!~\"5..\"}[1h]) / rate(http_requests_total{service=\"frontend-service\"}[1h]))) / 0.001)",
+            "legendFormat": "Frontend (SLO: 99.9%)",
+            "refId": "A"
+          },
+          {
+            "expr": "((1 - (rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[1h]) / rate(http_requests_total{service=\"backend-service\"}[1h]))) / 0.0005)",
+            "legendFormat": "Backend (SLO: 99.95%)",
+            "refId": "B"
+          },
+          {
+            "expr": "((1 - (rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[1h]) / rate(http_requests_total{service=\"ai-service\"}[1h]))) / 0.005)",
+            "legendFormat": "AI Service (SLO: 99.5%)",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "fillOpacity": 10
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Critical Burn Rate"},
+              "properties": [
+                {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}
+              ]
+            }
+          ]
+        },
+        "options": {
+          "legend": {"displayMode": "table", "placement": "right"}
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 3,
+        "title": "Latency SLO Compliance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"frontend-service\"}[5m]))",
+            "legendFormat": "Frontend p95 (SLO: <500ms)",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-service\"}[5m]))",
+            "legendFormat": "Backend p95 (SLO: <200ms)",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\"}[5m]))",
+            "legendFormat": "AI Service p95 (SLO: <2s)",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "External Synthetic Monitoring",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "probe_success{job=\"blackbox-external-targets\"}",
+            "legendFormat": "{{instance}} - Success",
+            "refId": "A"
+          },
+          {
+            "expr": "probe_duration_seconds{job=\"blackbox-external-targets\"}",
+            "legendFormat": "{{instance}} - Duration",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "line"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 5,
+        "title": "Resource Saturation",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "(rate(container_cpu_usage_seconds_total{pod=~\"todo-.*\"}[5m])) / (container_spec_cpu_quota{pod=~\"todo-.*\"}/container_spec_cpu_period{pod=~\"todo-.*\"}) * 100",
+            "legendFormat": "{{pod}} - CPU %",
+            "refId": "A"
+          },
+          {
+            "expr": "(container_memory_usage_bytes{pod=~\"todo-.*\"} / container_spec_memory_limit_bytes{pod=~\"todo-.*\"}) * 100",
+            "legendFormat": "{{pod}} - Memory %",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Error Budget Remaining (Monthly)",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "100 - ((1 - (rate(http_requests_total{service=\"frontend-service\",status!~\"5..\"}[30d]) / rate(http_requests_total{service=\"frontend-service\"}[30d]))) / 0.001 * 100)",
+            "legendFormat": "Frontend",
+            "refId": "A"
+          },
+          {
+            "expr": "100 - ((1 - (rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[30d]) / rate(http_requests_total{service=\"backend-service\"}[30d]))) / 0.0005 * 100)",
+            "legendFormat": "Backend",
+            "refId": "B"
+          },
+          {
+            "expr": "100 - ((1 - (rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[30d]) / rate(http_requests_total{service=\"ai-service\"}[30d]))) / 0.005 * 100)",
+            "legendFormat": "AI Service",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 25},
+                {"color": "green", "value": 75}
+              ]
+            }
+          }
+        },
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"]
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24}
+      },
+      {
+        "id": 7,
+        "title": "Alert Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "ALERTS{alertname=~\".*High.*\", alertstate=\"firing\"}",
+            "legendFormat": "{{alertname}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "mappings": [
+              {"options": {"0": {"text": "✅ All Good"}}, "type": "value"},
+              {"options": {"1": {"text": "🚨 Alert Firing"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "red", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24}
+      },
+      {
+        "id": 8,
+        "title": "SRE Metrics Summary",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "",
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "groupBy",
+            "options": {
+              "fields": {
+                "service": {
+                  "aggregations": [],
+                  "operation": "groupby"
+                },
+                "Value": {
+                  "aggregations": ["mean"],
+                  "operation": "aggregate"
+                }
+              }
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayMode": "table",
+              "filterable": true
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24}
+      }
+    ]
+  }
+}
