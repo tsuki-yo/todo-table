@@ -1,0 +1,38 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager-ingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: dns-01-production
+    nginx.ingress.kubernetes.io/hsts: "false"
+    nginx.ingress.kubernetes.io/hsts-max-age: "0"
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.natsuki-cloud.dev
+    external-dns.alpha.kubernetes.io/ttl: "300"
+    external-dns.alpha.kubernetes.io/owner-id: k8s
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: alertmanager-auth
+    nginx.ingress.kubernetes.io/auth-realm: "AlertManager SRE Alerts - Authentication Required"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      # Require CloudFront header for access
+      if ($http_x_cloudfront_access != "cloudfront-origin-access-2025") {
+        return 403;
+      }
+spec:
+  ingressClassName: external-nginx
+  rules:
+    - host: alertmanager.natsuki-cloud.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alertmanager-prometheus-operator-kube-p-alertmanager
+                port:
+                  number: 9093
+  tls:
+    - hosts:
+        - alertmanager.natsuki-cloud.dev
+      secretName: alertmanager-natsuki-cloud-dev
