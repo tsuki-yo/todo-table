@@ -72,12 +72,12 @@ jobs:
           git checkout deploy
           
           # Update the production kustomization to use new image tags
-          sed -i "s|newTag: .*|newTag: $TAG|g" production/app/kustomization.yaml
+          sed -i "s|newTag: .*|newTag: $TAG|g" infra/k8s/environments/production/app/kustomization.yaml
           
           # Commit the updated manifests to deploy branch
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add production/app/kustomization.yaml
+          git add infra/k8s/environments/production/app/kustomization.yaml
           git commit -m "chore: promote images to production $TAG" || echo "No changes to commit"
           git push origin deploy
 
