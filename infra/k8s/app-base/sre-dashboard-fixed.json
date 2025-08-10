@@ -1,0 +1,179 @@
+{
+  "id": null,
+  "title": "SRE Dashboard - Working Metrics",
+  "tags": ["sre", "slo"],
+  "style": "dark",
+  "timezone": "browser", 
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Service Availability (Current)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"backend-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "Backend Availability",
+          "refId": "A"
+        },
+        {
+          "expr": "((sum(rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total{service=\"ai-service\"}[5m])) or vector(1))) * 100",
+          "legendFormat": "AI Service Availability",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 95,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 95},
+              {"color": "yellow", "value": 99},
+              {"color": "green", "value": 99.5}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Current Traffic Rate",
+      "type": "stat", 
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{service=\"backend-service\"}[5m]))",
+          "legendFormat": "Backend req/s",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service req/s",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 3,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "yellow", "value": 0.01},
+              {"color": "green", "value": 0.1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "id": 3,
+      "title": "Request Rate Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{service=\"backend-service\"}[5m])",
+          "legendFormat": "Backend - {{method}} {{status_code}}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_requests_total{service=\"ai-service\"}[5m])",
+          "legendFormat": "AI Service - {{method}} {{status}}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 4,
+      "title": "Response Time (p95)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-service\"}[5m]))",
+          "legendFormat": "Backend p95 (SLO: <200ms)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service p95 (SLO: <2s)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 0.2},
+              {"color": "red", "value": 2}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 5,
+      "title": "SLO Status Summary",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "__name__": true,
+              "Time": true,
+              "job": true,
+              "instance": true
+            },
+            "renameByName": {
+              "service": "Service",
+              "method": "Method", 
+              "status_code": "Status",
+              "status": "Status",
+              "Value": "Request Rate (req/s)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "table"
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 14}
+    }
+  ]
+}

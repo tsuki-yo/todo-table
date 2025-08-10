@@ -1,0 +1,96 @@
+name: Promote to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  promote:
+    if: github.actor == 'tsuki-yo'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Need full history for tags
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get latest dev tag
+        id: get-tag
+        run: |
+          # Get the latest tag (created by dev branch builds)
+          git fetch --tags
+          LATEST_TAG=$(git tag -l --sort=-version:refname | head -n1)
+          echo "Found latest tag: $LATEST_TAG"
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Login to both ECRs
+        run: |
+          echo "Logging into staging ECR..."
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          
+          echo "Logging into production ECR..."
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.AWS_PROD_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Promote images to production
+        run: |
+          TAG=${{ steps.get-tag.outputs.latest_tag }}
+          STAGING_ECR="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+          PROD_ECR="${{ secrets.AWS_PROD_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+          
+          # Promote all services
+          for service in frontend backend ai-service; do
+            echo "🚀 Promoting todo-$service:$TAG to production..."
+            
+            # Pull from staging
+            docker pull $STAGING_ECR/todo-$service:$TAG
+            
+            # Tag for production
+            docker tag $STAGING_ECR/todo-$service:$TAG $PROD_ECR/todo-$service:$TAG
+            
+            # Push to production
+            docker push $PROD_ECR/todo-$service:$TAG
+            
+            echo "✅ Successfully promoted todo-$service:$TAG"
+          done
+
+      - name: Update production manifests in deploy branch
+        run: |
+          TAG=${{ steps.get-tag.outputs.latest_tag }}
+          echo "Updating production manifests to use tag: $TAG"
+          
+          # Checkout deploy branch where ArgoCD applications read from
+          git fetch origin deploy:deploy
+          git checkout deploy
+          
+          # Update the production kustomization to use new image tags
+          sed -i "s|newTag: .*|newTag: $TAG|g" production/app/kustomization.yaml
+          
+          # Commit the updated manifests to deploy branch
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add production/app/kustomization.yaml
+          git commit -m "chore: promote images to production $TAG" || echo "No changes to commit"
+          git push origin deploy
+
+      - name: Trigger production ArgoCD sync
+        run: |
+          echo "🎯 Production promotion completed successfully!"
+          echo "Tag ${{ steps.get-tag.outputs.latest_tag }} has been promoted to production"
+          echo "ArgoCD will automatically detect the manifest changes and deploy"
+
+      - name: Send promotion notification
+        run: |
+          echo "📢 PRODUCTION DEPLOYMENT NOTIFICATION"
+          echo "Version: ${{ steps.get-tag.outputs.latest_tag }}"
+          echo "Promoted at: $(date)"
+          echo "Promoted by: ${{ github.actor }}"
+          echo "Commit: ${{ github.sha }}"
