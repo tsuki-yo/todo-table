@@ -1,0 +1,174 @@
+{
+  "id": null,
+  "title": "SRE Overview - Error Budgets & SLOs",
+  "tags": ["sre", "slo", "error-budget"],
+  "style": "dark",
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Current Availability (SLO Compliance)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "((rate(http_requests_total{service=\"frontend-service\",status!~\"5..\"}[5m]) or vector(0)) / (rate(http_requests_total{service=\"frontend-service\"}[5m]) or vector(1))) * 100",
+          "legendFormat": "Frontend (Target: 99.9%)",
+          "refId": "A"
+        },
+        {
+          "expr": "((rate(http_requests_total{service=\"backend-service\",status_code!~\"5..\"}[5m]) or vector(0)) / (rate(http_requests_total{service=\"backend-service\"}[5m]) or vector(1))) * 100",
+          "legendFormat": "Backend (Target: 99.95%)",
+          "refId": "B"
+        },
+        {
+          "expr": "((rate(http_requests_total{service=\"ai-service\",status!~\"5..\"}[5m]) or vector(0)) / (rate(http_requests_total{service=\"ai-service\"}[5m]) or vector(1))) * 100",
+          "legendFormat": "AI Service (Target: 99.5%)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 99,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "yellow", "value": 99.5},
+              {"color": "green", "value": 99.9}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 2,
+      "title": "Request Rate (Traffic)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{service=\"frontend-service\"}[5m])",
+          "legendFormat": "Frontend",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(http_requests_total{service=\"backend-service\"}[5m])",
+          "legendFormat": "Backend", 
+          "refId": "B"
+        },
+        {
+          "expr": "rate(http_requests_total{service=\"ai-service\"}[5m])",
+          "legendFormat": "AI Service",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "fillOpacity": 10
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 3,
+      "title": "Error Rate (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "(rate(http_requests_total{service=\"frontend-service\",status=~\"5..\"}[5m]) / rate(http_requests_total{service=\"frontend-service\"}[5m])) * 100",
+          "legendFormat": "Frontend Errors",
+          "refId": "A"
+        },
+        {
+          "expr": "(rate(http_requests_total{service=\"backend-service\",status_code=~\"5..\"}[5m]) / rate(http_requests_total{service=\"backend-service\"}[5m])) * 100",
+          "legendFormat": "Backend Errors",
+          "refId": "B"
+        },
+        {
+          "expr": "(rate(http_requests_total{service=\"ai-service\",status=~\"5..\"}[5m]) / rate(http_requests_total{service=\"ai-service\"}[5m])) * 100",
+          "legendFormat": "AI Service Errors",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 0.1},
+              {"color": "red", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 4,
+      "title": "Response Time (p95)",
+      "type": "timeseries", 
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"frontend-service\"}[5m]))",
+          "legendFormat": "Frontend p95 (Target: <500ms)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"backend-service\"}[5m]))",
+          "legendFormat": "Backend p95 (Target: <200ms)",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service=\"ai-service\"}[5m]))",
+          "legendFormat": "AI Service p95 (Target: <2s)",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line"
+          }
+        }
+      },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 5,
+      "title": "SRE Targets & Current Performance",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[5m])",
+          "legendFormat": "{{service}} - {{method}} - {{status_code}}{{status}}",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "table"
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 22}
+    }
+  ]
+}
