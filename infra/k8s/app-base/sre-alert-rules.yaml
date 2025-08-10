@@ -1,0 +1,162 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: sre-slo-alerts
+  namespace: monitoring
+  labels:
+    prometheus: devops
+    role: alert-rules
+    release: prometheus-operator
+spec:
+  groups:
+  - name: sre.slo.availability
+    interval: 30s
+    rules:
+    # Frontend Service Availability SLO Alerts
+    - alert: FrontendHighErrorBudgetBurn
+      expr: |
+        (
+          rate(http_requests_total{service="frontend-service",status=~"5.."}[5m]) /
+          rate(http_requests_total{service="frontend-service"}[5m])
+        ) > (14.4 * 0.001)  # 14.4x burn rate for 99.9% SLO
+      for: 2m
+      labels:
+        severity: critical
+        service: frontend-service
+        slo_type: availability
+        burn_rate: fast
+      annotations:
+        summary: "Frontend service is burning error budget too fast"
+        description: "Frontend error rate is {{ $value | humanizePercentage }}, burning through monthly error budget in 2 hours"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-error-rate.md"
+
+    # Backend Service Availability SLO Alerts  
+    - alert: BackendHighErrorBudgetBurn
+      expr: |
+        (
+          rate(http_requests_total{service="backend-service",status_code=~"5.."}[5m]) /
+          rate(http_requests_total{service="backend-service"}[5m])
+        ) > (14.4 * 0.0005)  # 14.4x burn rate for 99.95% SLO
+      for: 2m
+      labels:
+        severity: critical
+        service: backend-service
+        slo_type: availability
+        burn_rate: fast
+      annotations:
+        summary: "Backend service is burning error budget too fast"
+        description: "Backend error rate is {{ $value | humanizePercentage }}, burning through monthly error budget in 2 hours"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-error-rate.md"
+
+    # AI Service Availability SLO Alerts
+    - alert: AIServiceHighErrorBudgetBurn
+      expr: |
+        (
+          rate(http_requests_total{service="ai-service",status=~"5.."}[5m]) /
+          rate(http_requests_total{service="ai-service"}[5m])
+        ) > (14.4 * 0.005)  # 14.4x burn rate for 99.5% SLO
+      for: 2m
+      labels:
+        severity: critical
+        service: ai-service
+        slo_type: availability
+        burn_rate: fast
+      annotations:
+        summary: "AI service is burning error budget too fast"
+        description: "AI service error rate is {{ $value | humanizePercentage }}, burning through monthly error budget in 2 hours"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-error-rate.md"
+
+  - name: sre.slo.latency
+    interval: 30s
+    rules:
+    # Latency SLO Alerts
+    - alert: FrontendHighLatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="frontend-service"}[5m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        service: frontend-service
+        slo_type: latency
+      annotations:
+        summary: "Frontend service latency is above SLO target"
+        description: "Frontend p95 latency is {{ $value }}s, above 500ms SLO target"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-latency.md"
+
+    - alert: BackendHighLatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="backend-service"}[5m])) > 0.2
+      for: 5m
+      labels:
+        severity: warning
+        service: backend-service
+        slo_type: latency
+      annotations:
+        summary: "Backend service latency is above SLO target"
+        description: "Backend p95 latency is {{ $value }}s, above 200ms SLO target"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-latency.md"
+
+    - alert: AIServiceHighLatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="ai-service"}[5m])) > 2.0
+      for: 5m
+      labels:
+        severity: warning
+        service: ai-service
+        slo_type: latency
+      annotations:
+        summary: "AI service latency is above SLO target"
+        description: "AI service p95 latency is {{ $value }}s, above 2s SLO target"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-latency.md"
+
+  - name: sre.slo.traffic
+    interval: 30s
+    rules:
+    # Traffic anomaly detection
+    - alert: LowTrafficAnomaly
+      expr: |
+        (
+          rate(http_requests_total[5m]) < 0.01
+        ) and (
+          rate(http_requests_total[1h] offset 1h) > 0.1
+        )
+      for: 10m
+      labels:
+        severity: warning
+        slo_type: traffic
+      annotations:
+        summary: "Significant drop in application traffic"
+        description: "Current traffic rate {{ $value }} req/s is significantly lower than historical average"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/traffic-drop.md"
+
+  - name: sre.slo.saturation
+    interval: 30s
+    rules:
+    # Resource saturation alerts
+    - alert: HighCPUSaturation
+      expr: |
+        (rate(container_cpu_usage_seconds_total{pod=~"todo-.*"}[5m])) / 
+        (container_spec_cpu_quota{pod=~"todo-.*"}/container_spec_cpu_period{pod=~"todo-.*"}) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        slo_type: saturation
+        resource: cpu
+      annotations:
+        summary: "High CPU usage in {{ $labels.pod }}"
+        description: "Pod {{ $labels.pod }} CPU usage is {{ $value }}%, approaching resource limits"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-resource-usage.md"
+
+    - alert: HighMemorySaturation
+      expr: |
+        (container_memory_usage_bytes{pod=~"todo-.*"} / container_spec_memory_limit_bytes{pod=~"todo-.*"}) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        slo_type: saturation
+        resource: memory
+      annotations:
+        summary: "High memory usage in {{ $labels.pod }}"
+        description: "Pod {{ $labels.pod }} memory usage is {{ $value }}%, approaching resource limits"
+        runbook_url: "https://github.com/tsuki-yo/todo-table/blob/main/docs/runbooks/high-resource-usage.md"

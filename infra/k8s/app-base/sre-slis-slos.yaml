@@ -1,0 +1,107 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sre-slis-slos
+  namespace: monitoring
+data:
+  slis-slos.yaml: |
+    # SRE Service Level Indicators (SLIs) and Service Level Objectives (SLOs)
+    # Based on Google's Four Golden Signals for todo-table application
+    
+    services:
+      frontend-service:
+        slis:
+          availability:
+            description: "Percentage of successful HTTP requests"
+            query: "rate(http_requests_total{service='frontend-service',status!~'5..'}[5m]) / rate(http_requests_total{service='frontend-service'}[5m]) * 100"
+            unit: "percentage"
+          latency:
+            description: "95th percentile response time"
+            query: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service='frontend-service'}[5m]))"
+            unit: "seconds"
+          error_rate:
+            description: "Percentage of HTTP 5xx errors"
+            query: "rate(http_requests_total{service='frontend-service',status=~'5..'}[5m]) / rate(http_requests_total{service='frontend-service'}[5m]) * 100"
+            unit: "percentage"
+          traffic:
+            description: "Request rate per second"
+            query: "rate(http_requests_total{service='frontend-service'}[5m])"
+            unit: "requests/second"
+        slos:
+          availability: 
+            target: 99.9  # 99.9% uptime
+            error_budget: 0.1  # 0.1% downtime allowed per month (~43 minutes)
+          latency:
+            target: 0.5   # p95 < 500ms
+            error_budget: 1.0  # Budget for requests exceeding 500ms
+          error_rate:
+            target: 0.1   # < 0.1% error rate
+            error_budget: 0.1  # 0.1% errors allowed
+            
+      backend-service:
+        slis:
+          availability:
+            description: "Percentage of successful HTTP requests"
+            query: "rate(http_requests_total{service='backend-service',status_code!~'5..'}[5m]) / rate(http_requests_total{service='backend-service'}[5m]) * 100"
+            unit: "percentage"
+          latency:
+            description: "95th percentile response time"
+            query: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service='backend-service'}[5m]))"
+            unit: "seconds"
+          error_rate:
+            description: "Percentage of HTTP 5xx errors"
+            query: "rate(http_requests_total{service='backend-service',status_code=~'5..'}[5m]) / rate(http_requests_total{service='backend-service'}[5m]) * 100"
+            unit: "percentage"
+          traffic:
+            description: "Request rate per second"
+            query: "rate(http_requests_total{service='backend-service'}[5m])"
+            unit: "requests/second"
+        slos:
+          availability: 
+            target: 99.95  # 99.95% uptime (higher for API)
+            error_budget: 0.05  # 0.05% downtime allowed per month (~22 minutes)
+          latency:
+            target: 0.2   # p95 < 200ms (tighter for API)
+            error_budget: 1.0
+          error_rate:
+            target: 0.05  # < 0.05% error rate (tighter for API)
+            error_budget: 0.05
+            
+      ai-service:
+        slis:
+          availability:
+            description: "Percentage of successful HTTP requests"
+            query: "rate(http_requests_total{service='ai-service',status!~'5..'}[5m]) / rate(http_requests_total{service='ai-service'}[5m]) * 100"
+            unit: "percentage"
+          latency:
+            description: "95th percentile response time"
+            query: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service='ai-service'}[5m]))"
+            unit: "seconds"
+          error_rate:
+            description: "Percentage of HTTP 5xx errors"
+            query: "rate(http_requests_total{service='ai-service',status=~'5..'}[5m]) / rate(http_requests_total{service='ai-service'}[5m]) * 100"
+            unit: "percentage"
+          traffic:
+            description: "Request rate per second"
+            query: "rate(http_requests_total{service='ai-service'}[5m])"
+            unit: "requests/second"
+        slos:
+          availability: 
+            target: 99.5  # 99.5% uptime (slightly lower for AI processing)
+            error_budget: 0.5  # 0.5% downtime allowed per month (~3.6 hours)
+          latency:
+            target: 2.0   # p95 < 2s (more lenient for AI processing)
+            error_budget: 1.0
+          error_rate:
+            target: 0.2   # < 0.2% error rate (more lenient for AI)
+            error_budget: 0.2
+    
+    # Error Budget Calculations
+    # Monthly error budget = (1 - SLO) * total_requests_per_month
+    # Burn rate = current_error_rate / error_budget_rate
+    # 
+    # Alert thresholds:
+    # - Critical: Burn rate > 14.4 (exhausts monthly budget in 2 hours)
+    # - Warning: Burn rate > 6 (exhausts monthly budget in 5 hours)
+    # - Page: Burn rate > 2 (exhausts monthly budget in 15 hours)
