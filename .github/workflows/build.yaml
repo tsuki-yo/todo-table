@@ -164,6 +164,21 @@ jobs:
             echo "manifest_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Update staging image tags
+        if: needs.bump-version.outputs.new_tag != ''
+        run: |
+          TAG=${{ needs.bump-version.outputs.new_tag }}
+          echo "Updating staging manifests to use tag: $TAG"
+          
+          # Update staging kustomization with new image tags
+          sed -i "s|newTag: .*|newTag: $TAG|g" infra/k8s/environments/staging/app/kustomization.yaml
+          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/k8s/environments/staging/app/kustomization.yaml
+          git commit -m "chore: update staging images to $TAG" || echo "No changes to commit"
+          git push origin dev
+
       - name: Sync manifest changes to deploy branch
         if: steps.check-manifests.outputs.manifest_changes == 'true'
         run: |
