@@ -27,13 +27,6 @@ images:
 
 patches:
 - target:
-    kind: Ingress
-    name: todo-app-ingress
-  patch: |-
-    - op: replace
-      path: /spec/rules/0/host
-      value: todo-app.natsuki-cloud.dev  # Production domain
-- target:
     kind: Deployment
   patch: |-
     - op: add
@@ -44,4 +37,4 @@ patches:
           memory: 128Mi
         limits:
           cpu: 500m
-          memory: 512Mi# Production environment promotion test
+          memory: 512Mi

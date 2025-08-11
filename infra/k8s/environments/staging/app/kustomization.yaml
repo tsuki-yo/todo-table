@@ -28,8 +28,48 @@ images:
 patches:
 - target:
     kind: Ingress
-    name: todo-app-ingress
+    name: todo-ingress
   patch: |-
     - op: replace
       path: /spec/rules/0/host
-      value: staging.todo-app.natsuki-cloud.dev  # Staging domain
+      value: staging-internal-app.natsuki-cloud.dev
+    - op: replace
+      path: /spec/rules/1/host
+      value: staging-app.natsuki-cloud.dev
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: staging-internal-app.natsuki-cloud.dev
+    - op: replace
+      path: /spec/tls/1/hosts/0
+      value: staging-app.natsuki-cloud.dev
+    - op: replace
+      path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
+      value: staging-internal-app.natsuki-cloud.dev
+- target:
+    kind: Ingress
+    name: prometheus-ingress
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: staging-prometheus.natsuki-cloud.dev
+- target:
+    kind: Ingress
+    name: grafana-ingress
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: staging-grafana.natsuki-cloud.dev
+- target:
+    kind: Ingress
+    name: alertmanager-ingress
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: staging-alertmanager.natsuki-cloud.dev
+- target:
+    kind: Ingress
+    name: argocd-server-ingress
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: staging-argocd.natsuki-cloud.dev
