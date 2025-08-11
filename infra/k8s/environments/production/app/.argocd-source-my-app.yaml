@@ -1,0 +1,5 @@
+kustomize:
+  images:
+  - 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend:0.1.80
+  - 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:0.1.80
+  - 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service:0.1.80
