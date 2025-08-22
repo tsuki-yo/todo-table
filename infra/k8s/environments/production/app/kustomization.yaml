@@ -8,11 +8,11 @@ resources:
 
 replicas:
 - name: todo-frontend
-  count: 3  # Production scale
+  count: 1  # Micro instance optimization
 - name: todo-backend
-  count: 3  # Production scale  
+  count: 1  # Micro instance optimization  
 - name: todo-ai-service
-  count: 2  # Production scale
+  count: 1  # Micro instance optimization
 
 images:
 - name: todo-frontend
@@ -34,7 +34,7 @@ patches:
       value:
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 100Mi
         limits:
           cpu: 500m
-          memory: 512Mi
+          memory: 150Mi
