@@ -17,13 +17,13 @@ replicas:
 images:
 - name: todo-frontend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
-  newTag: latest  # Updated by dev branch builds
+  newTag: 0.1.81
 - name: todo-backend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
-  newTag: latest  # Updated by dev branch builds
+  newTag: 0.1.81
 - name: todo-ai-service
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
-  newTag: latest  # Updated by dev branch builds
+  newTag: 0.1.81
 
 patches:
 - target:
