@@ -27,6 +27,17 @@ const httpRequestsTotal = new client.Counter({
   labelNames: ['method', 'route', 'status_code', 'service']
 });
 
+// CloudFront header validation middleware (only for production)
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    const cloudfrontHeader = req.headers['x-cloudfront-access'];
+    if (cloudfrontHeader !== 'cloudfront-origin-access-2025') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  });
+}
+
 // Middleware to collect metrics
 app.use((req, res, next) => {
   const start = Date.now();
