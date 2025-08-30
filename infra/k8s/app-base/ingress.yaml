@@ -11,7 +11,7 @@ metadata:
     external-dns.alpha.kubernetes.io/hostname: internal-app.natsuki-cloud.dev
     external-dns.alpha.kubernetes.io/ttl: "300"
     external-dns.alpha.kubernetes.io/owner-id: k8s
-    nginx.ingress.kubernetes.io/server-snippet: |
+    nginx.ingress.kubernetes.io/configuration-snippet: |
       # Require CloudFront header for access
       if ($http_x_cloudfront_access != "cloudfront-origin-access-2025") {
         return 403;
