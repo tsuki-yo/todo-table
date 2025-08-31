@@ -15,13 +15,13 @@ replicas:
   count: 1  # Staging scale
 
 images:
-- name: todo-frontend
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
   newTag: 0.1.81
-- name: todo-backend
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
   newTag: 0.1.81
-- name: todo-ai-service
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
   newTag: 0.1.81
 
