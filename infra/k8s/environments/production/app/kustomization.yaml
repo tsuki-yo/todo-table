@@ -8,40 +8,57 @@ resources:
 
 replicas:
 - name: todo-frontend
-  count: 3  # Production scale
+  count: 1  # Micro instance optimization
 - name: todo-backend
-  count: 3  # Production scale  
+  count: 1  # Micro instance optimization  
 - name: todo-ai-service
-  count: 2  # Production scale
+  count: 1  # Micro instance optimization
 
 images:
-- name: todo-frontend
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
-  newTag: latest  # Will be updated by promotion workflow
-- name: todo-backend
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
-  newTag: latest  # Will be updated by promotion workflow
-- name: todo-ai-service
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
-  newTag: latest  # Will be updated by promotion workflow
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
+  newTag: 0.1.80
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
+  newTag: 0.1.80
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
+  newTag: 0.1.80
 
 patches:
 - target:
-    kind: Ingress
-    name: todo-app-ingress
-  patch: |-
-    - op: replace
-      path: /spec/rules/0/host
-      value: todo-app.natsuki-cloud.dev  # Production domain
-- target:
     kind: Deployment
+    name: todo-frontend
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/resources
       value:
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 100Mi
         limits:
           cpu: 500m
-          memory: 512Mi# Production environment promotion test
+          memory: 150Mi
+- target:
+    kind: Deployment
+    name: todo-backend
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 500m
+          memory: 150Mi
+- target:
+    kind: Deployment
+    name: todo-ai-service
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value:
+        requests:
+          cpu: 100m
+          memory: 200Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi

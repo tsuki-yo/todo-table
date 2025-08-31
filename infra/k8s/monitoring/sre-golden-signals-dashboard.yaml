@@ -1,0 +1,179 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sre-golden-signals-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  sre-golden-signals.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "SRE Golden Signals - Todo AI Service",
+        "tags": ["sre", "golden-signals", "ai-service"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "🚦 Latency (Response Time)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(ai_service_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "p95 Latency"
+              },
+              {
+                "expr": "histogram_quantile(0.99, rate(ai_service_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "p99 Latency"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 0.2},
+                    {"color": "red", "value": 0.5}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "📊 Traffic (Requests per Second)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(ai_service_requests_total[5m])",
+                "legendFormat": "RPS"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 10},
+                    {"color": "red", "value": 50}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "❌ Errors (Error Rate %)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(ai_service_requests_total{status!~\"2..\"}[5m]) / rate(ai_service_requests_total[5m]) * 100",
+                "legendFormat": "Error Rate"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 1},
+                    {"color": "red", "value": 5}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "🌡️ Saturation (Active Requests)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "ai_service_active_requests",
+                "legendFormat": "Active Requests"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 10},
+                    {"color": "red", "value": 25}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "🧠 AI Processing Performance by Language",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(ai_service_processing_duration_seconds_bucket[5m])) by (language)",
+                "legendFormat": "p95 {{language}}"
+              }
+            ],
+            "yAxes": [
+              {"label": "Processing Time (seconds)", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+          },
+          {
+            "id": 6,
+            "title": "📈 Request Rate by Status Code",
+            "type": "graph", 
+            "targets": [
+              {
+                "expr": "rate(ai_service_requests_total[5m]) by (status)",
+                "legendFormat": "HTTP {{status}}"
+              }
+            ],
+            "yAxes": [
+              {"label": "Requests/sec", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+          },
+          {
+            "id": 7,
+            "title": "🔧 SpaCy Model Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "ai_service_spacy_model_loaded",
+                "legendFormat": "{{model}} ({{language}})"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "mappings": [
+                  {"type": "value", "value": "0", "text": "❌ Not Loaded"},
+                  {"type": "value", "value": "1", "text": "✅ Loaded"}
+                ],
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "green", "value": 1}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+          }
+        ],
+        "time": {"from": "now-1h", "to": "now"},
+        "refresh": "10s"
+      }
+    }
