@@ -15,14 +15,11 @@ replicas:
   count: 1  # Micro instance optimization
 
 images:
-- name: todo-frontend
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
   newTag: 0.1.80
-- name: todo-backend
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
   newTag: 0.1.80
-- name: todo-ai-service
-  newName: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
+- name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
   newTag: 0.1.80
 
 patches:
