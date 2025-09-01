@@ -19,8 +19,5 @@ resource "helm_release" "prometheus_operator" {
 
   depends_on = [kubernetes_namespace.monitoring, helm_release.aws_lbc, helm_release.external_nginx]
 
-  timeout                    = 1200  # 20 minutes
-  disable_webhooks          = true
-  wait                      = false
-  disable_openapi_validation = true
+  timeout = 1200  # 20 minutes
 } 
