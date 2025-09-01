@@ -15,7 +15,6 @@ resources:
   - backend-hpa.yaml
   - horizontal-runner-autoscaler.yaml
   - ingress.yaml
-  - internal-app-certificate.yaml
   - todo-app-certificate.yaml
   - cluster-issuer.yaml
   - dns-01-cluster-issuer.yaml
