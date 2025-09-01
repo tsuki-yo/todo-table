@@ -35,13 +35,13 @@ replicas:
 images:
 - name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend
-  newTag: 0.1.79
+  newTag: 0.1.82
 - name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend
-  newTag: 0.1.79
+  newTag: 0.1.82
 - name: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
   newName: 881490098269.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service
-  newTag: 0.1.79
+  newTag: 0.1.82
 
 patches:
 - target:

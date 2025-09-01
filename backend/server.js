@@ -65,11 +65,23 @@ app.get('/metrics', async (req, res) => {
 });
 
 // Configure AWS SDK (IRSA is used for my pod's AWS credentials)
-AWS.config.update({
-  region: "ap-northeast-1",
-});
+if (process.env.AWS_ROLE_ARN && process.env.NODE_ENV === 'production') {
+  AWS.config.update({
+    region: "ap-northeast-1",
+    credentials: new AWS.ChainableTemporaryCredentials({
+      params: {
+        RoleArn: process.env.AWS_ROLE_ARN,
+        RoleSessionName: 'todo-backend-production'
+      }
+    })
+  });
+} else {
+  AWS.config.update({
+    region: "ap-northeast-1",
+  });
+}
 const docClient = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME = "TodoTasks";
+const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || "TodoTasks";
 
 // Configure Cognito JWT verifier
 const verifier = CognitoJwtVerifier.create({
