@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: internal-app-natsuki-cloud-dev
-  namespace: todo-app
+  name: staging-app-natsuki-cloud-dev
+  namespace: staging
 spec:
-  secretName: internal-app-natsuki-cloud-dev
+  secretName: staging-app-natsuki-cloud-dev
   issuerRef:
     name: dns-01-production
     kind: ClusterIssuer
   dnsNames:
-  - internal-app.natsuki-cloud.dev
+  - staging-app.natsuki-cloud.dev
