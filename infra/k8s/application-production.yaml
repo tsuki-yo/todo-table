@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: my-app-production
+  name: todo-app-production
   namespace: argocd
   annotations:
     argocd-image-updater.argoproj.io/image-list: 476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-frontend:~0.1.1,476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-backend:~0.1.1,476114111588.dkr.ecr.ap-northeast-1.amazonaws.com/todo-ai-service:~0.1.1
@@ -14,7 +14,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/tsuki-yo/todo-table.git
-    targetRevision: deploy
+    targetRevision: main
     path: infra/k8s/environments/production/app
   destination:
     server: https://kubernetes.default.svc
