@@ -5,6 +5,24 @@ namespace: staging
 
 resources:
 - ../../../app-base
+- staging-internal-app-certificate.yaml
+- staging-app-certificate.yaml
+
+patchesStrategicMerge:
+- |-
+  $patch: delete
+  apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    name: internal-app-natsuki-cloud-dev
+    namespace: staging
+- |-
+  $patch: delete
+  apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    name: todo-app-natsuki-cloud-dev
+    namespace: staging
 
 replicas:
 - name: todo-frontend
@@ -40,8 +58,14 @@ patches:
       path: /spec/tls/0/hosts/0
       value: staging-internal-app.natsuki-cloud.dev
     - op: replace
+      path: /spec/tls/0/secretName
+      value: staging-internal-app-natsuki-cloud-dev
+    - op: replace
       path: /spec/tls/1/hosts/0
       value: staging-app.natsuki-cloud.dev
+    - op: replace
+      path: /spec/tls/1/secretName
+      value: staging-app-natsuki-cloud-dev
     - op: replace
       path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
       value: staging-internal-app.natsuki-cloud.dev
