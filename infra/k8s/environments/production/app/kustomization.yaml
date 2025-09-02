@@ -24,6 +24,13 @@ images:
 
 patches:
 - target:
+    kind: SealedSecret
+    name: github-app-secret
+  patch: |-
+    - op: replace
+      path: /metadata/namespace
+      value: actions
+- target:
     kind: Deployment
     name: todo-frontend
   patch: |-
