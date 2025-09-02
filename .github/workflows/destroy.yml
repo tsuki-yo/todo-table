@@ -36,7 +36,8 @@ jobs:
 
     - name: Delete Applications
       run: |
-        kubectl delete -f infra/k8s/application.yaml || echo "Main application may not exist"
+        kubectl delete -f infra/k8s/application-production.yaml || echo "Prod app may not exist"
+        kubectl delete -f infra/k8s/application.yaml || echo "Staging app may not exist"
         kubectl delete -f infra/k8s/actions-runner-app.yaml || echo "Actions runner app may not exist"
 
     - name: Terraform Init
