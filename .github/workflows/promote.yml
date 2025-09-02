@@ -21,46 +21,52 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Get latest dev tag with images
+      - name: Get latest images from staging ECR
         id: get-tag
         run: |
-          # Get tags and find the latest one that has actual images in ECR
-          git fetch --tags
+          # Get the latest image tag from each repository in staging ECR
+          echo "Getting latest image versions from staging ECR..."
           
-          # Get list of tags in descending order
-          for TAG in $(git tag -l --sort=-version:refname | head -10); do
-            echo "Checking if images exist for tag $TAG..."
-            
-            # Check if all service images exist with this tag
-            ALL_EXIST=true
-            for SERVICE in frontend backend ai-service; do
-              if ! aws ecr describe-images \
-                --repository-name todo-$SERVICE \
-                --image-ids imageTag=$TAG \
-                --region ${{ secrets.AWS_REGION }} \
-                --output text >/dev/null 2>&1; then
-                echo "  Missing: todo-$SERVICE:$TAG"
-                ALL_EXIST=false
-                break
-              fi
-            done
-            
-            if [ "$ALL_EXIST" = "true" ]; then
-              echo "Found all images for tag: $TAG"
-              LATEST_TAG=$TAG
-              break
-            else
-              echo "Not all images found for tag $TAG, checking older tags..."
+          # Get latest tags for each service
+          FRONTEND_TAG=$(aws ecr describe-images \
+            --repository-name todo-frontend \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'sort_by(imageDetails[?imageTags!=`null`],& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+          
+          BACKEND_TAG=$(aws ecr describe-images \
+            --repository-name todo-backend \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'sort_by(imageDetails[?imageTags!=`null`],& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+          
+          AI_SERVICE_TAG=$(aws ecr describe-images \
+            --repository-name todo-ai-service \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'sort_by(imageDetails[?imageTags!=`null`],& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+          
+          echo "Frontend latest: $FRONTEND_TAG"
+          echo "Backend latest: $BACKEND_TAG"
+          echo "AI Service latest: $AI_SERVICE_TAG"
+          
+          # Use the minimum version to ensure all services have this version
+          MIN_TAG=$(echo -e "$FRONTEND_TAG\n$BACKEND_TAG\n$AI_SERVICE_TAG" | sort -V | head -1)
+          echo "Using common version: $MIN_TAG (minimum across all services)"
+          
+          # Verify all services have this version
+          for SERVICE in frontend backend ai-service; do
+            if ! aws ecr describe-images \
+              --repository-name todo-$SERVICE \
+              --image-ids imageTag=$MIN_TAG \
+              --region ${{ secrets.AWS_REGION }} \
+              --output text >/dev/null 2>&1; then
+              echo "ERROR: todo-$SERVICE:$MIN_TAG not found!"
+              exit 1
             fi
           done
           
-          if [ -z "$LATEST_TAG" ]; then
-            echo "ERROR: No valid tag with all images found!"
-            exit 1
-          fi
-          
-          echo "Using tag with available images: $LATEST_TAG"
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "latest_tag=$MIN_TAG" >> $GITHUB_OUTPUT
 
       - name: Login to staging ECR
         run: |
