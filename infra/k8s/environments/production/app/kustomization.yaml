@@ -56,8 +56,6 @@ patches:
           value: "production"
         - name: DYNAMODB_TABLE_NAME
           value: "TodoTasks-Production"
-        - name: AWS_ROLE_ARN
-          value: "arn:aws:iam::476114111588:role/TodoAppProductionDynamoDBRole"
 - target:
     kind: Deployment
     name: todo-ai-service
