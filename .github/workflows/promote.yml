@@ -21,13 +21,45 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Get latest dev tag
+      - name: Get latest dev tag with images
         id: get-tag
         run: |
-          # Get the latest tag (created by dev branch builds)
+          # Get tags and find the latest one that has actual images in ECR
           git fetch --tags
-          LATEST_TAG=$(git tag -l --sort=-version:refname | head -n1)
-          echo "Found latest tag: $LATEST_TAG"
+          
+          # Get list of tags in descending order
+          for TAG in $(git tag -l --sort=-version:refname | head -10); do
+            echo "Checking if images exist for tag $TAG..."
+            
+            # Check if all service images exist with this tag
+            ALL_EXIST=true
+            for SERVICE in frontend backend ai-service; do
+              if ! aws ecr describe-images \
+                --repository-name todo-$SERVICE \
+                --image-ids imageTag=$TAG \
+                --region ${{ secrets.AWS_REGION }} \
+                --output text >/dev/null 2>&1; then
+                echo "  Missing: todo-$SERVICE:$TAG"
+                ALL_EXIST=false
+                break
+              fi
+            done
+            
+            if [ "$ALL_EXIST" = "true" ]; then
+              echo "Found all images for tag: $TAG"
+              LATEST_TAG=$TAG
+              break
+            else
+              echo "Not all images found for tag $TAG, checking older tags..."
+            fi
+          done
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "ERROR: No valid tag with all images found!"
+            exit 1
+          fi
+          
+          echo "Using tag with available images: $LATEST_TAG"
           echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Login to staging ECR
