@@ -39,6 +39,7 @@ terraform.tfvars
 .kubernetes/
 *.tfplan
 crash.log
+**/providers/**
 
 # Build & Dependencies
 dist/
@@ -64,3 +65,6 @@ coverage/
 # Secrets
 *secret*.yaml
 !*sealed*.yaml
+
+# Claude Code local settings
+.claude/

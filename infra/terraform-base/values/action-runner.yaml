@@ -1,5 +1,0 @@
-syncPeriod: 1m
-authSecret:
-  enabled: true
-  create: false
-  name: github-app-secret
