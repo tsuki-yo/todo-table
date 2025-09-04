@@ -15,4 +15,8 @@ resource "kubernetes_storage_class" "ebs_sc" {
     type      = "gp3"
     encrypted = "true"
   }
+  
+  depends_on = [
+    aws_eks_addon.csi_driver
+  ]
 } 

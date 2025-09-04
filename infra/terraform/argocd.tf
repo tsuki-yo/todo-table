@@ -11,4 +11,8 @@ resource "helm_release" "argocd" {
   version          = "7.8.26"
 
   values = [file("${path.module}/values/argocd.yaml")]
+  
+  depends_on = [
+    aws_eks_node_group.general
+  ]
 }
