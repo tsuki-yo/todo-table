@@ -24,7 +24,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: alertmanager-prometheus-operator-kube-p-alertmanager
+                name: prometheus-operator-kube-p-alertmanager
                 port:
                   number: 9093
   tls:

@@ -1,5 +1,12 @@
 grafana:
   adminPassword: "admin"  # Change this in production
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_name: Main Org.
+      org_role: Admin
+    auth.basic:
+      enabled: false
   persistence:
     enabled: true
     size: 10Gi
