@@ -34,10 +34,14 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ap-northeast-1 --name staging-todo-eks || echo "EKS cluster may not exist"
 
-    - name: Delete Applications
-      run: |
-        kubectl delete -f infra/k8s/application.yaml || echo "Main application may not exist"
-        kubectl delete -f infra/k8s/actions-runner-app.yaml || echo "Actions runner app may not exist"
+    - name: Delete production app
+      run: kubectl delete -f infra/k8s/application-production.yaml --ignore-not-found
+
+    - name: Delete staging app
+      run: kubectl delete -f infra/k8s/application.yaml --ignore-not-found
+
+    - name: Delete actions runner app
+      run: kubectl delete -f infra/k8s/actions-runner-app.yaml --ignore-not-found
 
     - name: Terraform Init
       working-directory: infra/terraform

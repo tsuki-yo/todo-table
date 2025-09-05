@@ -17,7 +17,13 @@ resource "helm_release" "prometheus_operator" {
     value = "false"
   }
 
-  depends_on = [kubernetes_namespace.monitoring, helm_release.aws_lbc, helm_release.external_nginx]
+  depends_on = [
+    kubernetes_namespace.monitoring,
+    helm_release.aws_lbc,
+    helm_release.external_nginx,
+    kubernetes_storage_class.ebs_sc,
+    aws_eks_node_group.general
+  ]
 
   timeout = 1200  # 20 minutes
 } 

@@ -50,6 +50,7 @@ jobs:
       run: |
         kubectl apply -f infra/k8s/actions-runner-app.yaml
         kubectl apply -f infra/k8s/application.yaml
+        kubectl apply -f infra/k8s/application-production.yaml
 
     - name: Wait for Applications to Sync
       run: |

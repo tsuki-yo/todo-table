@@ -15,10 +15,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend tests**: `cd frontend && npm test` (interactive mode)
 - **Frontend CI tests**: `cd frontend && npm run test:ci` (non-interactive, used in CI)
 - **AI service tests**: `cd ai-service && python test_spacy_japanese.py`
+- **Run single frontend test**: `cd frontend && npm test -- --testNamePattern="specific test name"`
+- **Run frontend tests with coverage**: `cd frontend && npm test -- --coverage --watchAll=false`
 
 ### AI Service
 - **Start AI service**: `cd ai-service && python main.py` (FastAPI server)
 - **Install AI dependencies**: `cd ai-service && pip install -r requirements.txt`
+- **Install spaCy models**: `python -m spacy download ja_core_news_sm && python -m spacy download en_core_web_sm`
+- **Test NLP functionality**: `cd ai-service && python test_spacy_japanese.py`
 
 ## Architecture Overview
 
@@ -68,7 +72,15 @@ The platform implements Google's Four Golden Signals with formal SLI/SLO definit
 
 ### Environment Management
 - **Staging**: Uses `infra/k8s/environments/staging/` overlays
+  - Namespace: `staging`
+  - URLs: `staging-app.natsuki-cloud.dev`, `staging-grafana.natsuki-cloud.dev`
+  - Lower resource limits, 1 replica per service
+  - Uses separate ECR repository (881490098269.dkr.ecr.ap-northeast-1.amazonaws.com)
 - **Production**: Uses `infra/k8s/environments/production/` overlays
+  - Namespace: `production` 
+  - URLs: `todo-app.natsuki-cloud.dev`, `grafana.natsuki-cloud.dev`
+  - Production resource limits and DynamoDB table (`TodoTasks-Production`)
+  - Uses main ECR repository (476114111588.dkr.ecr.ap-northeast-1.amazonaws.com)
 - **Base**: Common resources in `infra/k8s/app-base/`
 
 ## AWS Integration
@@ -117,3 +129,23 @@ The platform implements Google's Four Golden Signals with formal SLI/SLO definit
 - Tests are required for frontend changes (enforced in CI)
 - Infrastructure changes require Terraform plan review
 - SRE metrics must be maintained for all new features
+
+## Component-Specific Notes
+
+### Frontend (React)
+- Uses React 19 with AWS Cognito authentication via `react-oidc-context`
+- Jest configuration includes custom transforms for axios
+- Emotion.js for styled components
+- Guest mode supported alongside authenticated users
+
+### Backend (Node.js)
+- Express server with prom-client for Prometheus metrics
+- AWS SDK integration for DynamoDB
+- JWT verification via aws-jwt-verify
+- CORS enabled for frontend integration
+
+### AI Service (Python/FastAPI)  
+- spaCy-based NLP with Japanese (`ja_core_news_sm`) and English (`en_core_web_sm`) models
+- Dateparser for intelligent date extraction
+- Custom Japanese date patterns (今日, 明日, etc.)
+- Prometheus FastAPI instrumentator for metrics
