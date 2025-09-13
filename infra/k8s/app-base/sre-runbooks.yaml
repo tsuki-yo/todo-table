@@ -28,10 +28,13 @@ data:
     ### 2. Check Service Health
     ```bash
     # Check pod status
-    kubectl get pods -n todo-app -l app=<service-name>
+    kubectl get pods -n todo-app -l app=backend
+    kubectl get pods -n todo-app -l app=frontend
+    kubectl get pods -n todo-app -l app=ai-service
     
     # Check pod logs for errors
-    kubectl logs -n todo-app -l app=<service-name> --tail=50
+    kubectl logs -n todo-app -l app=backend --tail=50
+    kubectl logs -n todo-app -l app=ai-service --tail=50
     
     # Check resource usage
     kubectl top pods -n todo-app
@@ -39,20 +42,25 @@ data:
     
     ### 3. Check Dependencies
     ```bash
-    # Check database connectivity (if applicable)
-    kubectl exec -n todo-app <pod-name> -- curl -f http://database:5432/health
+    # Check backend is responding
+    kubectl exec -n todo-app deployment/backend -- curl -f http://localhost:3001/metrics
     
-    # Check external API dependencies
-    kubectl exec -n todo-app <pod-name> -- curl -f https://external-api.com/health
+    # Check AI service health
+    kubectl exec -n todo-app deployment/backend -- curl -f http://ai-service:3003/health
+    
+    # Test backend can reach AI service
+    kubectl exec -n todo-app deployment/backend -- nc -zv ai-service 3003
     ```
     
     ### 4. Quick Fixes
     ```bash
     # Restart failing pods
-    kubectl rollout restart deployment/<service-name> -n todo-app
+    kubectl rollout restart deployment/backend -n todo-app
+    kubectl rollout restart deployment/ai-service -n todo-app
     
     # Scale up replicas if under load
-    kubectl scale deployment/<service-name> --replicas=3 -n todo-app
+    kubectl scale deployment/backend --replicas=3 -n todo-app
+    kubectl scale deployment/ai-service --replicas=3 -n todo-app
     
     # Check HPA status
     kubectl get hpa -n todo-app
@@ -100,11 +108,11 @@ data:
     
     ### 3. Performance Analysis
     ```bash
-    # Check slow queries (if database involved)
-    kubectl logs -n todo-app <backend-pod> | grep "slow query"
+    # Check for DynamoDB errors in backend logs
+    kubectl logs -n todo-app -l app=backend --tail=100 | grep -i "dynamodb\|error"
     
-    # Check for memory leaks
-    kubectl exec -n todo-app <pod> -- curl http://localhost:8080/metrics | grep memory
+    # Check backend memory usage from metrics
+    kubectl exec -n todo-app deployment/backend -- curl -s http://localhost:3001/metrics | grep nodejs_heap
     ```
     
     ### 4. Immediate Actions
