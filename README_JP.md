@@ -13,21 +13,22 @@ graph TD
     end
     
     subgraph AWS["AWSクラウドインフラ"]
-        CloudFront -->|Origin| NLB["Network Load Balancer"]
+        CloudFront -->|オリジン| NLB["Network Load Balancer"]
         
         subgraph EKS["Amazon EKSクラスター"]
-            NLB -->|Traffic| Ingress["Nginx Ingress Controller"]
+            NLB -->|トラフィック| Ingress["Nginx Ingress Controller"]
             
-            subgraph Monitoring["SREオブザーバビリティスタック"]
+            subgraph Monitoring["SRE監視スタック"]
                 Prometheus["Prometheus"] 
                 Grafana["Grafanaダッシュボード"]
                 AlertManager["AlertManager"]
+                Blackbox["Blackbox Exporter"]
             end
             
             subgraph Applications["マイクロサービス"]
-                Frontend["React Frontend<br/>99.9% SLO"]
+                Frontend["Reactフロントエンド<br/>99.9% SLO"]
                 Backend["Node.js API<br/>99.95% SLO"] 
-                AI["Python AI Service<br/>99.5% SLO"]
+                AI["Python AIサービス<br/>99.5% SLO"]
             end
             
             ArgoCD["ArgoCD GitOps"]
@@ -40,11 +41,24 @@ graph TD
         end
     end
     
-    Backend -->|Data Layer| DynamoDB
-    Frontend -->|Authentication| Cognito
-    Ingress -->|Route| Applications
+    subgraph CICD["CI/CDパイプライン"]
+        GitHub["GitHubリポジトリ"] -->|Webhook| Actions["GitHub Actions"]
+        Actions -->|ビルド&テスト| ECR
+        ArgoCD -->|デプロイ| Applications
+    end
+    
+    subgraph SRE["SREモニタリング"]
+        Prometheus -->|メトリクス| Applications
+        Blackbox -->|外部監視| CloudFront
+        AlertManager -->|SLO違反| Runbooks["インシデント対応<br/>ランブック"]
+    end
+    
+    Backend -->|データ層| DynamoDB
+    Frontend -->|認証| Cognito
+    Ingress -->|ルーティング| Applications
     
     style Monitoring fill:#ff9999,color:white
+    style SRE fill:#ff9999,color:white
     style Applications fill:#99ccff,color:white
     style AWS fill:#232F3E,color:white
 ```
